@@ -1,0 +1,56 @@
+<div class="search-div">
+  <button mat-raised-button (click)="onCreate()"><mat-icon>add</mat-icon>Добавить помещение</button>
+  <mat-form-field class="search-form-field">
+    <mat-label>Найти...</mat-label>
+    <input matInput type="text" [(ngModel)]="searchKey" autocomplete="on"  (keyup)="applyFilter()">
+    <button *ngIf="searchKey" matSuffix mat-icon-button aria-label="Clear" (click)="searchKey=''">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+</div>
+<div class="mat-elevation-z8">
+  <mat-table [dataSource]="tableData" matSort>
+    <ng-container matColumnDef="number">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Номер помещения</mat-header-cell>
+      <mat-cell *matCellDef="let element">{{element.number}}</mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="floor">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Этаж</mat-header-cell>
+      <mat-cell *matCellDef="let element">{{element.floor}}</mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="measured_area">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Площадь помещения</mat-header-cell>
+      <mat-cell *matCellDef="let element">{{element.measured_area}}</mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="contracted">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Сдано в аренду</mat-header-cell>
+
+      <mat-cell *matCellDef="let element">
+        <ng-container *ngIf="element.contracted">Да</ng-container>
+        <ng-container *ngIf="!element.contracted">Нет</ng-container>
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <button mat-icon-button (click)="onEdit(row)"><mat-icon>launch</mat-icon></button>
+        <button mat-icon-button color="warn" (click)="onDelete(row)"><mat-icon>delete_outline</mat-icon></button>
+      </mat-cell>
+    </ng-container>
+    <ng-container matColumnDef="loading">
+      <mat-footer-cell *matFooterCellDef colspan="6">
+        Загрузка...
+      </mat-footer-cell>
+    </ng-container>
+    <ng-container matColumnDef="no_data">
+      <mat-footer-cell *matFooterCellDef colspan="6">
+        Нет данных
+      </mat-footer-cell>
+    </ng-container>
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    <mat-footer-row *matFooterRowDef="['loading']" [ngClass]="{'hide':tableData!=null}"></mat-footer-row>
+    <mat-footer-row *matFooterRowDef="['no_data']" [ngClass]="{'hide':!(tableData!=null && tableData.data.length == null)}"></mat-footer-row>
+  </mat-table>
+  <mat-paginator [pageSizeOptions]="[5, 10, 20, 100]" [pageSize]="10" showFirstLastButtons></mat-paginator>
+</div>

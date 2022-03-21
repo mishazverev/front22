@@ -1,0 +1,594 @@
+  <div [formGroup]="service.form_tenants">
+    <input type="hidden" formControlName="id">
+    <mat-grid-list cols="2" rowHeight="45px">
+      <mat-grid-tile>
+        <div class="header_tile">
+          <h2 mat-dialog-title>{{service.form_tenants.controls['id'].value?"Профиль арендатора":"Добавить профиль арендатора"}}</h2>
+        </div>
+      </mat-grid-tile>
+
+      <mat-grid-tile [colspan]="1">
+        <div class="toggle_tile">
+          <mat-slide-toggle
+            *ngIf="service.form_tenants.controls['id'].value"
+            [checked]="globalService.editCardTrigger$.value"
+            (change)="globalService.editCardToggle($event)"
+          > Внести изменения
+          </mat-slide-toggle>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </div>
+
+  <mat-progress-bar mode="query" *ngIf="service.tenantFormIsLoaded$.value == false"></mat-progress-bar>
+
+  <div *ngIf="service.tenantFormIsLoaded$.value == true">
+
+  <mat-stepper [linear]= true>
+
+  <mat-step label="Арендатор и контакты">
+    <ng-template matStepLabel>Арендатор и контакты</ng-template>
+    <p></p>
+
+    <div [formGroup]="service.form_tenants">
+      <input type="hidden" formControlName="id">
+      <input type="hidden" formControlName="brands_id">
+
+      <mat-grid-list cols="3" rowHeight="75px">
+
+          <mat-grid-tile [colspan]="2">
+            <mat-form-field appearance="fill">
+              <mat-label>Арендатор</mat-label>
+              <input matInput placeholder="Арендатор" formControlName="company_name">
+              <mat-hint align="start">Обязательное поле</mat-hint>
+              <mat-error>Обязательное поле</mat-error>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile
+            [colspan]="1">
+            <mat-form-field appearance="fill">
+              <mat-label>Желаемый тип помещения*</mat-label>
+              <mat-select [(value)]="selected" formControlName="needed_premise_type">
+                <mat-option value="retail_premise">Торговое помещение</mat-option>
+                <mat-option value="office_premise">Офисное помещение</mat-option>
+                <mat-option value="warehouse_premise">Складское помещение</mat-option>
+              </mat-select>
+              <mat-hint align="start">Обязательное поле</mat-hint>
+            </mat-form-field>
+          </mat-grid-tile>
+        </mat-grid-list>
+
+      <mat-grid-list cols="1" rowHeight="75px">
+        <mat-grid-tile colspan="1">
+          <div class="mat-chip-list-wrapper">
+            <mat-form-field appearance="fill">
+              <mat-label>Торговые марки</mat-label>
+                <mat-chip-list #chipList aria-label="Торговые марки">
+                  <mat-chip
+                    class="chip-text"
+                    *ngFor="let brand of service.brandsArray"
+                    [selectable]="selectable"
+                    [removable]="removable"
+                    (removed)="service.removeBrandChip(brand)">
+                    {{brand.brand_name}}
+                    <div *ngIf="globalService.editCardTrigger$.value">
+                      <span>&nbsp;</span>
+                      <span>&nbsp;</span>
+                      <span
+                        (click)="service.removeBrandChip(brand)"
+                      > <mat-icon class="chip-icon"
+                      >cancel</mat-icon></span>
+                    </div>
+                  </mat-chip>
+                  <input
+                    placeholder="Введите торговую марку и нажмите Enter"
+                    [matChipInputFor]="chipList"
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                    (matChipInputTokenEnd)="service.addBrandChip($event)">
+                </mat-chip-list>
+          </mat-form-field>
+          </div>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+      <mat-grid-list cols="1" rowHeight="75px">
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Комментарии</mat-label>
+            <input matInput placeholder="Комментарии" formControlName="description">
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+    </div>
+    <mat-divider></mat-divider>
+    <p></p>
+    <p>Контакты арендатора</p>
+    <p></p>
+    <div [formGroup]="service.contactTabsForm">
+      <ng-container formArrayName="contactsArray">
+
+        <mat-tab-group
+          [selectedIndex]="service.activeTab$.value"
+        >
+      <mat-tab
+        *ngFor="let contact of service.contactTabs.controls; index as i"
+      >
+        <ng-template mat-tab-label>
+          <span class="tab_label_span1">{{service.contact_name[i]}}</span>
+          <span>&nbsp;</span>
+          <span>&nbsp;</span>
+          <span>&nbsp;</span>
+          <span *ngIf="globalService.editCardTrigger$.value"
+                class="tab_label_span2" (click)="service.deleteContact(i, contact.value.id, service.contact_name[i])">
+            <mat-icon>cancel</mat-icon></span>
+        </ng-template>
+        <ng-container [formGroupName]="i">
+          <input type="hidden" formControlName="id">
+          <input type="hidden" formControlName="tenant_contractor_id">
+          <mat-grid-list cols="3" rowHeight="75px">
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Контактное лицо</mat-label>
+                <input matInput placeholder="Контактное лицо"
+                       formControlName="contact_person_name">
+                <mat-error *ngIf="contact.invalid">Обязательное поле</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Должность</mat-label>
+                <input matInput placeholder="Должность" formControlName="contact_person_position">
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Email</mat-label>
+                <input matInput placeholder="Email" formControlName="contact_person_email">
+                <mat-error *ngIf="contact.invalid">Введите email</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Рабочий телефон</mat-label>
+                <input matInput placeholder="Рабочий телефон" formControlName="contact_person_phone">
+                <mat-error *ngIf="contact.invalid">Введите номер телефона с кодом страны</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Мобильный телефон</mat-label>
+                <input matInput placeholder="Мобильный телефон" formControlName="contact_person_mobile1">
+                <mat-error *ngIf="contact.invalid">Введите номер телефона с кодом страны</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Второй мобильный телефон</mat-label>
+                <input matInput placeholder="Второй мобильный телефон" formControlName="contact_person_mobile2">
+                <mat-error *ngIf="contact.invalid">Введите номер телефона с кодом страны</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+          </mat-grid-list>
+        </ng-container>
+      </mat-tab>
+          <mat-tab disabled
+            *ngIf="service.newContactTabTrigger$.value && globalService.editCardTrigger$.value">
+            <ng-template mat-tab-label>
+              <span class="black-disabled-label" (click)="service.addContactsTab()">Новый контакт</span>
+              <span>&nbsp;</span>
+              <span>&nbsp;</span>
+              <span>&nbsp;</span>
+              <span class="black-disabled-label" (click)="service.addContactsTab()"><mat-icon class="tab-icon">add_circle</mat-icon></span>
+            </ng-template>
+        </mat-tab>
+
+    </mat-tab-group>
+    </ng-container>
+    </div>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+
+          <button
+            *ngIf="!service.form_tenants.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+
+          <button
+            *ngIf="service.form_tenants.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_tenants.invalid
+            || service.contactTabsForm.invalid
+            || service.brandTabsForm.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperNext>Далее/Пропустить</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+  <mat-step label="Требования к помещению">
+
+    <div *ngIf="service.form_tenants.controls['needed_premise_type'].value !== 'retail_premise'" [formGroup]="service.form_tenants">
+      <ng-template matStepLabel>Требования к помещению</ng-template>
+
+      <mat-grid-list cols="3" rowHeight="75px">
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+          <mat-label>Минимальная площадь, кв.м.</mat-label>
+          <input matInput placeholder="Минимальная площадь, кв.м." formControlName="needed_min_area">
+            <mat-error *ngIf="service.form_tenants.controls['needed_min_area'].errors?.['pattern']">Введите число с 2 знаками после точки</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+            <mat-form-field appearance="fill">
+            <mat-label>Максимальная площадь, кв.м.</mat-label>
+            <input matInput placeholder="Максимальная площадь, кв.м." formControlName="needed_max_area">
+              <mat-error *ngIf="service.form_tenants.controls['needed_max_area'].errors?.['pattern']">Введите число с 2 знаками после точки</mat-error>
+            </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Требуемая высота потолка, м.</mat-label>
+            <input matInput placeholder="Требуемая высота потолка, м." formControlName="needed_ceiling_height">
+            <mat-error *ngIf="service.form_tenants.controls['needed_ceiling_height'].errors?.['pattern']">Введите число с 2 знаками после точки</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill" >
+            <mat-label>Требуемая мощность электроснабжения, кВт.</mat-label>
+            <input matInput placeholder="Требуемая мощность электроснабжения, кВт." formControlName="needed_electric_capacity">
+            <mat-error *ngIf="service.form_tenants.controls['needed_electric_capacity'].errors?.['pattern']">Введите число с 2 знаками после точки</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Требуемая мощность холодоснабжения, кВт.</mat-label>
+            <input matInput placeholder="Требуемая мощность холодоснабжения, кВт." formControlName="needed_cooling_capacity">
+            <mat-error *ngIf="service.form_tenants.controls['needed_cooling_capacity'].errors?.['pattern']">Введите число с 2 знаками после точки</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+      <mat-grid-list cols="3" rowHeight="45px">
+
+        <mat-grid-tile>
+          <div class="mat-grid-tile-content">
+          <mat-checkbox formControlName="needed_fitout_condition">Требуется отделка</mat-checkbox>
+          </div>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <div class="mat-grid-tile-content">
+          <mat-checkbox formControlName="needed_water_supply">Требуется доступ к водоснабжению</mat-checkbox>
+          </div>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+    </div>
+
+    <div *ngIf="service.form_tenants.controls['needed_premise_type'].value == 'retail_premise'"
+          [formGroup]="service.brandTabsForm">
+        <p></p>
+      <ng-container formArrayName="brandTabsArray">
+        <mat-tab-group>
+          <mat-tab
+            *ngFor="let brand of service.brandTabs.controls; index as i"
+          >
+            <ng-template mat-tab-label>
+              <span class="tab_label_span1">{{service.brandsArray[i].brand_name}}</span>
+            </ng-template>
+            <ng-container [formGroupName]="i">
+              <input type="hidden" formControlName="id">
+              <input type="hidden" formControlName="brand_name">
+              <input type="hidden" formControlName="brand_category_tag">
+
+              <mat-grid-list cols="3" rowHeight="75px">
+
+                <mat-grid-tile>
+                  <mat-form-field appearance="fill">
+                    <mat-label>Желаемый тип помещения*</mat-label>
+                    <mat-select formControlName="retail_premise_type">
+                      <mat-option value="shop">Магазин</mat-option>
+                      <mat-option value="kiosk">Киоск</mat-option>
+                      <mat-option value="restaurant">Ресторан</mat-option>
+                      <mat-option value="foodcourt_unit">Кухня на фудкорте</mat-option>
+                    </mat-select>
+                    <mat-hint align="start">Обязательное поле</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile>
+                  <mat-form-field appearance="fill">
+                    <mat-label>Минимальная площадь, кв.м.</mat-label>
+                    <input matInput placeholder="Минимальная площадь, кв.м." formControlName="needed_min_area">
+                    <mat-error *ngIf="brand.invalid">Введите число с 2 знаками после точки</mat-error>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile>
+                  <mat-form-field appearance="fill">
+                    <mat-label>Максимальная площадь, кв.м.</mat-label>
+                    <input matInput placeholder="Максимальная площадь, кв.м." formControlName="needed_max_area">
+                    <mat-error *ngIf="brand.invalid">Введите число с 2 знаками после точки</mat-error>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile>
+                  <mat-form-field appearance="fill">
+                    <mat-label>Требуемая высота потолка, м.</mat-label>
+                    <input matInput placeholder="Требуемая высота потолка, м." formControlName="needed_ceiling_height">
+                    <mat-error *ngIf="brand.invalid">Введите число с 2 знаками после точки</mat-error>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile>
+                  <mat-form-field appearance="fill" >
+                    <mat-label>Требуемая мощность электроснабжения, кВт.</mat-label>
+                    <input matInput placeholder="Требуемая мощность электроснабжения, кВт." formControlName="needed_electric_capacity">
+                    <mat-error *ngIf="brand.invalid">Введите число с 2 знаками после точки</mat-error>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile>
+                  <mat-form-field appearance="fill">
+                    <mat-label>Требуемая мощность холодоснабжения, кВт.</mat-label>
+                    <input matInput placeholder="Требуемая мощность холодоснабжения, кВт." formControlName="needed_cooling_capacity">
+                    <mat-error *ngIf="brand.invalid">Введите число с 2 знаками после точки</mat-error>
+                  </mat-form-field>
+                </mat-grid-tile>
+              </mat-grid-list>
+
+
+              <mat-grid-list cols="2" rowHeight="35px">
+                <mat-grid-tile colspan="1">
+                  <div class="mat-grid-tile-content">
+                    <mat-checkbox formControlName="needed_fitout_condition">Требуется отделка</mat-checkbox>
+                  </div>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="1">
+                  <div class="mat-grid-tile-content">
+                    <mat-checkbox formControlName="needed_water_supply">Требуется доступ к водоснабжению</mat-checkbox>
+                  </div>
+                </mat-grid-tile>
+                </mat-grid-list>
+
+              <mat-grid-list cols="1" rowHeight="75px">
+                <mat-grid-tile>
+                  <mat-form-field appearance="fill">
+                    <mat-label>Комментарии</mat-label>
+                    <input matInput placeholder="Комментарии" formControlName="brand_description">
+                  </mat-form-field>
+                </mat-grid-tile>
+              </mat-grid-list>
+
+            </ng-container>
+          </mat-tab>
+        </mat-tab-group>
+      </ng-container>
+
+    </div>
+
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+
+          <button
+            *ngIf="!service.form_tenants.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+
+          <button
+            *ngIf="service.form_tenants.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_tenants.invalid
+            || service.contactTabsForm.invalid
+            || service.brandTabsForm.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+          <button mat-button matStepperNext>Далее/Пропустить</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+
+  </mat-step>
+  <mat-step label="Банковские реквизиты">
+    <form [formGroup]="service.form_tenants">
+      <ng-template matStepLabel>Банковские реквизиты</ng-template>
+
+      <mat-grid-list cols="3" rowHeight="75px">
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>ИНН</mat-label>
+            <input matInput placeholder="ИНН" formControlName="tax_id">
+            <mat-error *ngIf="service.form_tenants.controls['tax_id'].errors?.['pattern']">Введите корректный ИНН (10 или 12 цифр)</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Юридическое лицо</mat-label>
+            <input matInput placeholder="Юридическое лицо" formControlName="legal_name">
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>КПП</mat-label>
+            <input matInput placeholder="КПП" formControlName="kpp">
+            <mat-error *ngIf="service.form_tenants.controls['kpp'].errors?.['pattern']">Введите корректный КПП (9 цифр)</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+      <mat-grid-list cols="3" rowHeight="75px">
+      <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>БИК</mat-label>
+            <input matInput placeholder="БИК" formControlName="bik">
+            <mat-error *ngIf="service.form_tenants.controls['bik'].errors?.['pattern']">Введите корректный БИК (9 цифр)</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Банк</mat-label>
+            <input matInput placeholder="Банк" formControlName="bank_name">
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Расчетный счет</mat-label>
+            <input matInput placeholder="Расчетный счет" formControlName="current_account">
+            <mat-error *ngIf="service.form_tenants.controls['current_account'].errors?.['pattern']">Введите корректный расчетный счет (20 цифр)</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Корреспондентский счет</mat-label>
+            <input matInput placeholder="Корреспондентский счет" formControlName="correspondent_account">
+            <mat-error *ngIf="service.form_tenants.controls['correspondent_account'].errors?.['pattern']">Введите корректный корреспондентский счет (20 цифр)</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>ОГРН</mat-label>
+            <input matInput placeholder="ОГРН" formControlName="ogrn">
+            <mat-error *ngIf="service.form_tenants.controls['ogrn'].errors?.['pattern']">Введите корректный ОГРН (13 цифр)</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>ОКПО</mat-label>
+            <input matInput placeholder="ОКПО" formControlName="okpo">
+            <mat-error *ngIf="service.form_tenants.controls['okpo'].errors?.['pattern']">Введите корректный ОКПО (8 или 10 цифр)</mat-error>
+
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>ФИО подписанта</mat-label>
+            <input matInput placeholder="ФИО подписанта" formControlName="signing_person_name">
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Должность подписанта</mat-label>
+            <input matInput placeholder="Должность подписанта" formControlName="signing_person_position">
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Юридический адрес</mat-label>
+            <input matInput placeholder="Юридический адрес" formControlName="legal_address">
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile>
+          <mat-form-field appearance="fill">
+            <mat-label>Почтовый адрес</mat-label>
+            <input matInput placeholder="Почтовый адрес" formControlName="postal_address">
+          </mat-form-field>
+        </mat-grid-tile>
+
+            <input type="hidden" formControlName="registration_authority">
+            <input type="hidden" formControlName="legal_entity_certificate_number">
+
+      </mat-grid-list>
+     
+    </form>
+
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+
+          <button
+            *ngIf="!service.form_tenants.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+
+          <button
+            *ngIf="service.form_tenants.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_tenants.invalid
+            || service.contactTabsForm.invalid
+            || service.brandTabsForm.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+
+
+</mat-stepper>
+  </div>

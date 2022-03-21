@@ -1,0 +1,205 @@
+<div [formGroup]="service.form_premises">
+  <mat-grid-list cols="2" rowHeight="45px">
+    <mat-grid-tile>
+      <div class="header_tile">
+        <h2 mat-dialog-title>{{service.form_premises.controls['id'].value?"Карточка помещения":"Добавить помещение"}}</h2>
+      </div>
+    </mat-grid-tile>
+    <mat-grid-tile>
+      <div class="toggle_tile">
+        <mat-slide-toggle
+          *ngIf="service.form_premises.controls['id'].value"
+          [checked]="globalService.editCardTrigger$.value"
+          (change)="globalService.editCardToggle($event)"
+        >Внести изменения
+        </mat-slide-toggle>
+      </div>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>
+
+  <mat-progress-bar mode="query" *ngIf="service.premiseFormIsLoaded$.value == false"></mat-progress-bar>
+
+  <div *ngIf="service.premiseFormIsLoaded$.value == true" [formGroup]="service.form_premises">
+
+  <mat-stepper [linear]= true>
+    <mat-step label="Основные параметры">
+        <ng-template matStepLabel>Основные параметры</ng-template>
+        <input type="hidden" formControlName="id">
+        <input type="hidden" formControlName="last_updated">
+        <input type="hidden" formControlName="user_updated">
+        <input type="hidden" formControlName="measurement_date">
+        <p></p>
+        <mat-grid-list cols="3" rowHeight="75px">
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Номер помещения</mat-label>
+              <input matInput placeholder="Номер помещения" formControlName="number">
+              <mat-hint>Обязательное поле</mat-hint>
+              <mat-error>Обязательное поле</mat-error>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Тип помещения</mat-label>
+              <mat-select [(value)]="selected" formControlName="premise_type">
+                <mat-option value="retail_premise">Торговое помещение</mat-option>
+                <mat-option value="office_premise">Офисное помещение</mat-option>
+                <mat-option value="warehouse_premise">Складское помещение</mat-option>
+              </mat-select>
+              <mat-hint >Обязательное поле</mat-hint>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Этаж</mat-label>
+              <input matInput placeholder="Этаж" formControlName="floor">
+              <mat-hint >Обязательное поле</mat-hint>
+              <mat-error  *ngIf="service.form_premises.controls['floor'].errors?.['required']">Обязательное поле</mat-error>
+              <mat-error  *ngIf="service.form_premises.controls['floor'].errors?.['pattern'] || service.form_premises.controls['floor'].errors?.['maxlength']">Введите пожалуйста число от 0 до 99</mat-error>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Площадь помещения, кв. м.</mat-label>
+              <input matInput placeholder="Площадь помещения, кв. м." formControlName="measured_area">
+              <mat-hint >Обязательное поле</mat-hint>
+              <mat-error *ngIf="service.form_premises.controls['measured_area'].errors?.['required']">Обязательное поле</mat-error>
+              <mat-error *ngIf="service.form_premises.controls['measured_area'].errors?.['pattern']">Введите число, не более чем с 2 знаками после точки</mat-error>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile colspan="2">
+            <mat-form-field appearance="fill">
+              <mat-label>Комментарий</mat-label>
+              <input matInput placeholder="Комментарий" formControlName="description">
+            </mat-form-field>
+          </mat-grid-tile>
+
+        </mat-grid-list>
+      <p></p>
+      <mat-grid-list cols="2" rowHeight="40px">
+        <mat-grid-tile colspan="1">
+          <div class="btn-left">
+            <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+            <button
+              *ngIf="!service.form_premises.controls['id'].value"
+              mat-raised-button
+              color="primary"
+              type="submit"
+              (click)="onSubmit()"
+              [disabled] = "service.form_premises.invalid"
+            >
+              Сохранить изменения
+            </button>
+            <button
+              *ngIf="service.form_premises.controls['id'].value"
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled] = "globalService.editCardTrigger$.value == false
+              || service.form_premises.invalid"
+              (click)="onSubmit()"
+            >
+              Сохранить изменения
+            </button>
+          </div>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="1">
+          <div class="btn-right">
+            <button mat-button matStepperNext>Далее</button>
+          </div>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-step>
+
+    <mat-step label="Технические параметры">
+          <ng-template matStepLabel>Технические параметры</ng-template>
+        <p></p>
+          <mat-grid-list cols="3" rowHeight="75px">
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Высота потолка, м.</mat-label>
+                <input matInput placeholder="Высота потолка, м." formControlName="ceiling_height">
+                <mat-error  *ngIf="service.form_premises.controls['ceiling_height'].errors?.['pattern']">Введите число, не более чем с 2 знаками после точки</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Длина фасада, м.</mat-label>
+                <input matInput placeholder="Длина фасада, м." formControlName="facade_length">
+                <mat-error  *ngIf="service.form_premises.controls['facade_length'].errors?.['pattern']">Введите число, не более чем с 2 знаками после точки</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill" >
+                <mat-label>Мощность электроснабжения, кВт.</mat-label>
+                <input matInput placeholder="Мощность электроснабжения, кВт." formControlName="electric_capacity">
+                <mat-error  *ngIf="service.form_premises.controls['electric_capacity'].errors?.['pattern']">Введите число, не более чем с 2 знаками после точки</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <mat-form-field appearance="fill">
+                <mat-label>Мощность холодоснабжения, кВт.</mat-label>
+                <input matInput placeholder="Мощность холодоснабжения, кВт." formControlName="cooling_capacity">
+                <mat-error  *ngIf="service.form_premises.controls['cooling_capacity'].errors?.['pattern']">Введите число, не более чем с 2 знаками после точки</mat-error>
+              </mat-form-field>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <div class="mat-grid-tile-content">
+                <mat-checkbox formControlName="fitout_condition">Есть отделка</mat-checkbox>
+              </div>
+            </mat-grid-tile>
+
+            <mat-grid-tile>
+              <div class="mat-grid-tile-content">
+                <mat-checkbox formControlName="water_supply">Есть доступ к водоснабжению</mat-checkbox>
+              </div>
+            </mat-grid-tile>
+
+          </mat-grid-list>
+      <p></p>
+      <mat-grid-list cols="2" rowHeight="40px">
+        <mat-grid-tile colspan="1">
+          <div class="btn-left">
+            <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+            <button
+              *ngIf="!service.form_premises.controls['id'].value"
+              mat-raised-button
+              color="primary"
+              type="submit"
+              (click)="onSubmit()"
+              [disabled] = "service.form_premises.invalid"
+            >
+              Сохранить изменения
+            </button>
+            <button
+              *ngIf="service.form_premises.controls['id'].value"
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled] = "globalService.editCardTrigger$.value == false
+              || service.form_premises.invalid"
+              (click)="onSubmit()"
+            >
+              Сохранить изменения
+            </button>
+          </div>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="1">
+          <div class="btn-right">
+            <button mat-button matStepperPrevious>Назад</button>
+          </div>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-step>
+</mat-stepper>
+
+  </div>

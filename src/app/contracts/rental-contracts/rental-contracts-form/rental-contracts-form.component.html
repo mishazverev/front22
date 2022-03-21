@@ -1,0 +1,493 @@
+<div [formGroup]="service.form_contract">
+  <input type="hidden" formControlName="id">
+<mat-grid-list cols="2" rowHeight="45px">
+  <mat-grid-tile>
+    <div class="header_tile">
+      <h2 mat-dialog-title>{{service.form_contract.controls['id'].value?"Изменить договор аренды":"Добавить договор аренды"}}</h2>
+    </div>
+  </mat-grid-tile>
+
+  <mat-grid-tile [colspan]="1">
+  <div class="toggle_tile">
+    <mat-slide-toggle
+      *ngIf="service.form_contract.controls['id'].value"
+      [checked]="globalService.editCardTrigger$.value"
+      (change)="globalService.editCardToggle($event)"
+    > Внести изменения
+    </mat-slide-toggle>
+    <button mat-raised-button
+            [disabled] = '!globalService.editCardTrigger$.value'
+            (click)="contractSetupOpen()"
+            >
+      <mat-icon>settings</mat-icon>
+    </button>
+  </div>
+  </mat-grid-tile>
+</mat-grid-list>
+</div>
+
+  <mat-progress-bar mode="query" *ngIf="service.rentContractIsLoaded$.value == false"></mat-progress-bar>
+
+  <div *ngIf="service.rentContractIsLoaded$.value == true" [formGroup]="service.form_contract">
+  <mat-grid-list cols="3" rowHeight="75px">
+
+  <mat-grid-tile>
+    <mat-form-field appearance="fill">
+      <mat-label>Номер договора</mat-label>
+      <input matInput formControlName="rent_contract_number" autocomplete="off">
+    </mat-form-field>
+  </mat-grid-tile>
+
+  <mat-grid-tile>
+    <mat-form-field appearance="fill">
+      <mat-label>Дата начала договора</mat-label>
+      <input matInput [matDatepicker]="picker1" formControlName="rent_contract_signing_date" autocomplete="off">
+      <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+      <mat-datepicker #picker1></mat-datepicker>
+    </mat-form-field>
+  </mat-grid-tile>
+
+  <mat-grid-tile>
+    <mat-form-field appearance="fill">
+      <mat-label>Дата окончания договора</mat-label>
+      <input matInput [matDatepicker]="picker2" formControlName="rent_contract_expiration_date" autocomplete="off">
+      <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+      <mat-datepicker #picker2></mat-datepicker>
+    </mat-form-field>
+  </mat-grid-tile>
+
+</mat-grid-list>
+
+<mat-stepper [linear]="true">
+    <mat-step>
+    <ng-template matStepLabel>Основное</ng-template>
+    <p></p>
+
+        <mat-grid-list cols="2" rowHeight="80px">
+
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Помещение</mat-label>
+              <mat-select formControlName="premise_id" multiple>
+                <mat-option *ngFor="let premise of service.premises" [value]="premise.id">
+                 № {{premise.number}} | {{premise.measured_area}} кв.м.
+                </mat-option>
+              </mat-select>
+              <mat-hint align="start">Обязательное поле</mat-hint>
+              <mat-error>Обязательное поле</mat-error>
+            </mat-form-field>
+          </mat-grid-tile >
+
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Итого площадь по договору, кв.м.</mat-label>
+              <input matInput placeholder="Итого площадь по договору, кв.м." formControlName="contracted_area">
+              <mat-hint align="start">Обязательное поле</mat-hint>
+              <mat-error>Обязательное поле</mat-error>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Арендатор</mat-label>
+              <mat-select formControlName="tenant_contractor_id">
+                <mat-option *ngFor="let tenant of service.tenantContractors"
+                            [value]="tenant.id">
+                            {{tenant.company_name}}
+                </mat-option>
+              </mat-select>
+              <mat-hint align="start">Обязательное поле</mat-hint>
+              <mat-error>Обязательное поле</mat-error>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile>
+            <mat-form-field appearance="fill">
+              <mat-label>Торговая марка</mat-label>
+              <mat-select formControlName="brand" placeholder="Торговая марка">
+<!--                          [(value)]="service.selectedTenantBrands[0].brand_name">-->
+
+                <mat-option
+                  *ngFor="let brand of service.selectedTenantBrands"
+                  [value]="brand.id">
+                  {{brand.brand_name}}
+                </mat-option>
+              </mat-select>
+              <mat-hint align="start">Обязательное поле</mat-hint>
+              <mat-error>Обязательное поле</mat-error>
+            </mat-form-field>
+          </mat-grid-tile>
+        </mat-grid-list>
+
+    <mat-grid-list cols="2" rowHeight="80px">
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата передачи помещения арендатору</mat-label>
+          <input matInput [matDatepicker]="picker3" formControlName="act_of_transfer_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="picker3"></mat-datepicker-toggle>
+          <mat-datepicker #picker3></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата начала платежей по договору</mat-label>
+          <input matInput [matDatepicker]="picker4" formControlName="rent_start_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="picker4"></mat-datepicker-toggle>
+          <mat-datepicker #picker4></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата возврата помещения арендодателю</mat-label>
+          <input matInput [matDatepicker]="picker5" formControlName="premise_return_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="picker5"></mat-datepicker-toggle>
+          <mat-datepicker #picker5></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата окончания платежей по договору</mat-label>
+          <input matInput [matDatepicker]="picker6" formControlName="stop_billing_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="picker6"></mat-datepicker-toggle>
+          <mat-datepicker #picker6></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+
+    </mat-grid-list>
+      <mat-grid-list cols="2" rowHeight="40px">
+        <mat-grid-tile colspan="1">
+          <div class="btn-left">
+            <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+
+            <button
+              *ngIf="!service.form_contract.controls['id'].value"
+              mat-raised-button
+              color="primary"
+              type="submit"
+              (click)="onSubmit()"
+              [disabled] = "service.form_contract.invalid"
+            >
+              Сохранить изменения
+            </button>
+
+            <button
+              *ngIf="service.form_contract.controls['id'].value"
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled] = "globalService.editCardTrigger$.value == false
+        || service.form_contract.invalid"
+              (click)="onSubmit()"
+            >
+              Сохранить изменения
+            </button>
+          </div>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="1">
+          <div class="btn-right">
+            <button mat-button matStepperNext>Далее/Пропустить</button>
+          </div>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-step>
+
+  <mat-step>
+      <ng-template matStepLabel>{{service.fixedRentNameSubject.value}}{{service.turnoverFeeName.value}}</ng-template>
+   <mat-grid-list cols="3" rowHeight="75px">
+     <p></p>
+     <mat-grid-tile *ngIf="service.form_contract.controls['fixed_rent_calculation_method'].value == 'Per_sqm'">
+       <mat-form-field appearance="fill">
+         <mat-label>{{service.fixedRentNameSubject.value}}</mat-label>
+         <input matInput placeholder={{service.fixedRentNameSubject.value}} formControlName="fixed_rent_per_sqm" autocomplete="off">
+         <mat-hint>В рублях за 1 кв. м. помещения{{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
+       </mat-form-field>
+     </mat-grid-tile>
+
+     <mat-grid-tile *ngIf="service.form_contract.controls['fixed_rent_calculation_method'].value == 'Total'">
+       <mat-form-field appearance="fill">
+         <mat-label>{{service.fixedRentNameSubject.value}}</mat-label>
+         <input matInput placeholder={{service.fixedRentNameSubject.value}} formControlName="fixed_rent_total_payment" autocomplete="off">
+         <mat-hint>В рублях за всё помещение{{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
+       </mat-form-field>
+     </mat-grid-tile>
+
+     <mat-grid-tile *ngIf="service.form_contract.controls['fixed_rent_indexation_type'].value == 'Fixed'">
+       <mat-form-field appearance="fill">
+         <mat-label>На какой % {{service.fixedRentNameSubject.value}} индексируется ежегодно?</mat-label>
+         <input matInput placeholder='На какой % {{service.fixedRentNameSubject.value}} индексируется ежегодно?' formControlName="fixed_rent_indexation_fixed" autocomplete="off">
+         <mat-hint>Индекс, на который {{service.fixedRentNameSubject.value}} увеличивается ежегодно</mat-hint>
+       </mat-form-field>
+     </mat-grid-tile>
+
+     <mat-grid-tile *ngIf="service.turnoverFeeIsApplicable$.value == true">
+       <mat-form-field appearance="fill">
+         <mat-label>% платы от товарооборота</mat-label>
+         <input matInput placeholder='Какой % учитывается при расчете платы от товарооборота?' formControlName="turnover_fee" autocomplete="off">
+         <mat-hint>Какой % учитывается при расчете платы от товарооборота?</mat-hint>
+       </mat-form-field>
+     </mat-grid-tile>
+
+   </mat-grid-list>
+  <ng-container rowHeight="40px" *ngIf="service.guaranteeDepositIsRequired$.value == true">
+    <mat-grid-list cols="3" rowHeight="30px">
+      <mat-grid-tile colspan="2">
+        <div class="header_tile">
+          <span>Депозит покрывает {{guaranteeCoveredMonthsValue$.value}} месяцев и {{guaranteeCoveredDaysValue$.value}} дней аренды</span>
+        </div>
+      </mat-grid-tile>
+
+    </mat-grid-list>
+
+    <mat-grid-list cols="2" rowHeight="75px">
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Тип депозита</mat-label>
+          <mat-select
+            formControlName="guarantee_deposit_type">
+            <mat-option [value]="option.value" *ngFor="let option of enumService.guaranteeDepositTypes">{{option.viewValue}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Размер депозита</mat-label>
+          <input matInput placeholder="Размер депозита" formControlName="guarantee_deposit_amount">
+        </mat-form-field>
+      </mat-grid-tile>
+    </mat-grid-list>
+
+    <mat-grid-list cols="2" rowHeight="75px">
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата предоставления депозита</mat-label>
+          <input matInput [matDatepicker]="pickerGuaranteeProvidingDate" formControlName="guarantee_deposit_contract_providing_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="pickerGuaranteeProvidingDate"></mat-datepicker-toggle>
+          <mat-datepicker #pickerGuaranteeProvidingDate></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата истечения банковской гарантии</mat-label>
+          <input matInput [matDatepicker]="pickerGuaranteeExpirationDate" formControlName="guarantee_bank_guarantee_expiration_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="pickerGuaranteeExpirationDate"></mat-datepicker-toggle>
+          <mat-datepicker #pickerGuaranteeExpirationDate></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+
+    </mat-grid-list>
+  </ng-container>
+  <ng-container *ngIf="service.insuranceIsRequired$.value == true">
+    <mat-grid-list cols="2" rowHeight="20px">
+      <mat-grid-tile>
+        <div class="header_tile">
+          <span>Страхование</span>
+        </div>
+      </mat-grid-tile>
+
+    </mat-grid-list>
+
+    <mat-grid-list cols="2" rowHeight="75px">
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата предоставления полиса</mat-label>
+          <input matInput [matDatepicker]="pickerInsuranceProvidingDate" formControlName="insurance_contract_providing_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="pickerInsuranceProvidingDate"></mat-datepicker-toggle>
+          <mat-datepicker #pickerInsuranceProvidingDate></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-form-field appearance="fill">
+          <mat-label>Дата истечения полиса</mat-label>
+          <input matInput [matDatepicker]="pickerInsuranceExpirationDate" formControlName="insurance_expiration_date" autocomplete="off">
+          <mat-datepicker-toggle matSuffix [for]="pickerInsuranceExpirationDate"></mat-datepicker-toggle>
+          <mat-datepicker #pickerInsuranceExpirationDate></mat-datepicker>
+        </mat-form-field>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </ng-container>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+
+          <button
+            *ngIf="!service.form_contract.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            (click)="onSubmit()"
+            [disabled] = "service.form_contract.invalid"
+          >
+            Сохранить изменения
+          </button>
+
+          <button
+            *ngIf="service.form_contract.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled] = "globalService.editCardTrigger$.value == false
+        || service.form_contract.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+          <button mat-button matStepperNext>Далее/Пропустить</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+
+  <mat-step *ngIf="service.periodicalFeeContractArray.length > 0 || service.oneTimeFeeContractArray.length > 0">
+      <ng-template matStepLabel>{{this.service.periodicalFeeNameSubject.value}}{{this.service.oneTimeFeeNameSubject.value}}сборы</ng-template>
+      <p></p>
+    <div [formGroup]="service.periodicalFeeTabsForm">
+      <ng-container formArrayName="periodicalFeeArray">
+        <mat-tab-group>
+          <mat-tab
+            *ngFor="let fee of service.periodicalFeeTabs.controls; index as i"
+          >
+            <ng-template mat-tab-label>
+              <span class="tab_label_span1">{{service.periodicalFeeContractArray[i].periodical_fee_name}}</span>
+            </ng-template>
+            <ng-container [formGroupName]="i">
+              <input type="hidden" formControlName="id">
+              <input type="hidden" formControlName="rent_contract_id">
+              <input type="hidden" formControlName="rent_contract_additional_agreement_id">
+              <mat-grid-list cols="2" rowHeight="75px">
+
+                <mat-grid-tile *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">
+                  <mat-form-field appearance="fill">
+                    <mat-label>{{service.periodicalFeeContractArray[i].periodical_fee_name}} - за 1 кв.м. {{service.periodicalFeeCalculationPeriod.value[i]}}</mat-label>
+                    <input matInput formControlName="periodical_fee_per_sqm" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint>В рублях за 1 кв. м. помещения{{service.periodicalFeeCalculationPeriod.value[i]}}</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">
+                  <mat-form-field appearance="fill">
+                    <mat-label>{{service.periodicalFeeContractArray[i].periodical_fee_name}} - за всё помещение {{service.periodicalFeeCalculationPeriod.value[i]}}</mat-label>
+                    <input matInput formControlName="periodical_fee_total_payment" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint>В рублях за всё помещение{{service.periodicalFeeCalculationPeriod.value[i]}}</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile *ngIf="service.periodicalFeeIndexationType.value[i] == 'Fixed'">
+                  <mat-form-field appearance="fill">
+                    <mat-label>Значение % индексации</mat-label>
+                    <input matInput formControlName="periodical_payment_indexation_fixed" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint align="start">{{service.periodicalFeeContractArray[i].periodical_fee_name}} увеличивется ежегодно на этот %</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile *ngIf="service.periodicalFeeIndexationType.value[i] == 'CPI'">
+                  <p>Индексируется ежегодно согласно индексу потребительских цен</p>
+                </mat-grid-tile>
+
+                <mat-grid-tile *ngIf="service.periodicalFeeIndexationType.value[i] == 'Non_Indexable'">
+                  <p>Не индексируется</p>
+                </mat-grid-tile>
+
+              </mat-grid-list>
+            </ng-container>
+          </mat-tab>
+        </mat-tab-group>
+      </ng-container>
+    </div>
+
+    <div [formGroup]="service.oneTimeFeeTabsForm">
+      <ng-container formArrayName="oneTimeFeeArray">
+        <mat-tab-group>
+          <mat-tab
+            *ngFor="let fee of service.oneTimeFeeTabs.controls; index as i"
+          >
+            <ng-template mat-tab-label>
+              <span class="tab_label_span1">{{service.oneTimeFeeContractArray[i].one_time_fee_name}}</span>
+            </ng-template>
+            <ng-container [formGroupName]="i">
+              <input type="hidden" formControlName="id">
+              <input type="hidden" formControlName="rent_contract_id">
+              <input type="hidden" formControlName="rent_contract_additional_agreement_id">
+              <mat-grid-list cols="2" rowHeight="85px">
+
+                <mat-grid-tile *ngIf="service.oneTimeFeeContractArray[i].one_time_fee_calculation_method == 'Per_sqm'">
+                  <mat-form-field appearance="fill">
+                    <mat-label>{{service.oneTimeFeeContractArray[i].one_time_fee_name}} - за 1 кв.м. помещения</mat-label>
+                    <input matInput formControlName="one_time_fee_per_sqm" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint>В рублях за 1 кв. м. помещения</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile *ngIf="service.oneTimeFeeContractArray[i].one_time_fee_calculation_method == 'Total'">
+                  <mat-form-field appearance="fill">
+                    <mat-label>{{service.oneTimeFeeContractArray[i].one_time_fee_name}} - общая сумма платежа</mat-label>
+                    <input matInput formControlName="one_time_fee_total_payment" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint>В рублях за всё помещение</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+              </mat-grid-list>
+            </ng-container>
+          </mat-tab>
+        </mat-tab-group>
+      </ng-container>
+    </div>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button mat-raised-button color="accent" type="button" (click)="onClose()">Отмена</button>
+
+          <button
+            *ngIf="!service.form_contract.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            (click)="onSubmit()"
+            [disabled] = "service.form_contract.invalid"
+          >
+            Сохранить изменения
+          </button>
+
+          <button
+            *ngIf="service.form_contract.controls['id'].value"
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled] = "globalService.editCardTrigger$.value == false
+            || service.form_contract.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+
+
+</mat-stepper>
+  </div>

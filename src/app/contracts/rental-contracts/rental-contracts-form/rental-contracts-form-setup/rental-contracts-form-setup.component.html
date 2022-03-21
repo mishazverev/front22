@@ -1,0 +1,970 @@
+<div [formGroup]="service.form_contract">
+
+  <mat-grid-list cols="2" rowHeight="45px">
+    <mat-grid-tile>
+      <div class="header_tile">
+        <h2 mat-dialog-title>Изменить настройки договора</h2>
+      </div>
+    </mat-grid-tile>
+
+    <mat-grid-tile [colspan]="1">
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>
+
+<mat-stepper>
+  <mat-step>
+    <ng-template matStepLabel>Основное</ng-template>
+    <mat-divider></mat-divider>
+    <div [formGroup]="service.form_contract">
+
+      <mat-grid-list cols="12" rowHeight="75px">
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">Как называется "Арендная плата" в Вашем договоре аренды?</p>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="7">
+          <mat-form-field appearance="fill">
+            <mat-label>Например: "Базовая арендная плата", "Основная арендная плата" ...</mat-label>
+            <input matInput
+                   formControlName="fixed_rent_name" autocomplete="off">
+            <mat-error>Обязательное поле</mat-error>
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </div>
+
+    <mat-grid-list cols="12" rowHeight="67px">
+      <mat-grid-tile colspan="5">
+        <p class="paragraph_tile">Какие регулярные сборы оплачивает Арендатор?</p>
+      </mat-grid-tile>
+
+      <mat-grid-tile colspan="7">
+
+
+        <div class="mat-chip-list-wrapper">
+
+          <mat-form-field appearance="fill">
+            <mat-label>Например: "Эксплуатационный платёж", "Маркетинговый сбор" ...</mat-label>
+            <mat-chip-list #chipList_periodical_fee aria-label='Например: "Эксплуатационный платёж", "Маркетинговый сбор" ...'>
+              <mat-chip
+                class="chip-text"
+                *ngFor="let fee of service.periodicalFeeContractArray"
+                [selectable]="selectable"
+                [removable]="removable"
+                (removed)="service.removePeriodicalFeeChip(fee)">
+                {{fee.periodical_fee_name}}
+                <div>
+                  <span>&nbsp;</span>
+                  <span>&nbsp;</span>
+                  <span
+                    (click)="service.removePeriodicalFeeChip(fee)"
+                  > <mat-icon class="chip-icon"
+                  >cancel</mat-icon></span>
+                </div>
+              </mat-chip>
+              <input
+                placeholder="Введите название платежа и нажмите Enter"
+                [matChipInputFor]="chipList_periodical_fee"
+                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                (matChipInputTokenEnd)="service.addPeriodicalFeeChip($event)"
+                autocomplete="off">
+            </mat-chip-list>
+          </mat-form-field>
+        </div>
+      </mat-grid-tile>
+
+      <mat-grid-tile colspan="5">
+        <p class="paragraph_tile">Какие единовременные сборы оплачивает Арендатор?</p>
+      </mat-grid-tile>
+
+      <mat-grid-tile colspan="7">
+
+        <div class="mat-chip-list-wrapper">
+          <mat-form-field appearance="fill">
+            <mat-label>Например: "Монтаж стеклянных витрин"...</mat-label>
+            <mat-chip-list #chipList_one_time_fee aria-label='Например: "Монтаж стеклянных витрин"...'>
+              <mat-chip
+                class="chip-text"
+                *ngFor="let fee of service.oneTimeFeeContractArray"
+                [selectable]="selectable"
+                [removable]="removable"
+                (removed)="service.removeOneTimeFeeChip(fee)">
+                {{fee.one_time_fee_name}}
+                <div *ngIf="globalService.editCardTrigger$.value">
+                  <span>&nbsp;</span>
+                  <span>&nbsp;</span>
+                  <span
+                    (click)="service.removeOneTimeFeeChip(fee)"
+                  > <mat-icon class="chip-icon"
+                  >cancel</mat-icon></span>
+                </div>
+              </mat-chip>
+              <input
+                placeholder="Введите название платежа и нажмите Enter"
+                [disabled]="globalService.editCardTrigger$.value == false"
+                [matChipInputFor]="chipList_one_time_fee"
+                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                (matChipInputTokenEnd)="service.addOneTimeFeeChip($event)"
+                autocomplete="off">
+            </mat-chip-list>
+          </mat-form-field>
+        </div>
+      </mat-grid-tile>
+
+      <mat-grid-tile colspan="5">
+        <p class="paragraph_tile">Какие коммунальные ресурсы оплачивает Арендатор по приборам учёта?</p>
+      </mat-grid-tile>
+
+      <mat-grid-tile colspan="7">
+
+        <div class="mat-chip-list-wrapper">
+          <mat-form-field appearance="fill">
+            <mat-label>Например: "Электроэнергия", "Холодная вода", "Газ"...</mat-label>
+            <mat-chip-list #chipList_utilities aria-label='Например: "Электроэнергия", "Холодная вода", "Газ"...'>
+              <mat-chip
+                class="chip-text"
+                *ngFor="let fee of service.utilityFeeContractArray"
+                [selectable]="selectable"
+                [removable]="removable"
+                (removed)="service.removeUtilityFeeChip(fee)">
+                {{fee.utility_name}}
+                <div *ngIf="globalService.editCardTrigger$.value">
+                  <span>&nbsp;</span>
+                  <span>&nbsp;</span>
+                  <span
+                    (click)="service.removeUtilityFeeChip(fee)"
+                  > <mat-icon class="chip-icon"
+                  >cancel</mat-icon></span>
+                </div>
+              </mat-chip>
+              <input
+                placeholder="Введите название платежа и нажмите Enter"
+                [disabled]="globalService.editCardTrigger$.value == false"
+                [matChipInputFor]="chipList_utilities"
+                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                (matChipInputTokenEnd)="service.addUtilityFeeChip($event)"
+                autocomplete="off">
+            </mat-chip-list>
+          </mat-form-field>
+        </div>
+      </mat-grid-tile>
+
+    </mat-grid-list>
+
+    <mat-grid-list cols="12" rowHeight="67px">
+
+      <div [formGroup]="service.form_contract" label="Плата от товарооборота">
+        <mat-grid-tile colspan="4">
+          <span class="paragraph_tile_left">Арендатор оплачивает плату от товарооборота?</span>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="1">
+          <div class="toggle_tile_align_left">
+            <mat-slide-toggle
+              formControlName = "turnover_fee_is_applicable"
+              [checked]="service.turnoverFeeIsApplicable$.value"
+              (change)="service.turnoverFeeIsApplicableChange($event)">
+              <span *ngIf="service.turnoverFeeIsApplicable$.value == true">Да</span>
+              <span *ngIf="service.turnoverFeeIsApplicable$.value == false">Нет</span>
+            </mat-slide-toggle>
+          </div>
+        </mat-grid-tile>
+      </div>
+
+
+      <div [formGroup]="service.form_contract"
+           label="Компенсация затрат на коммунальные ресурсы для мест общего пользования">
+        <mat-grid-tile colspan="5">
+                  <span class="paragraph_tile_right">
+                    Арендатор компенсирует затраты Арендодателя на коммунальные ресурсы для мест общего пользования?</span>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="1">
+          <div class="toggle_tile_align_right">
+            <mat-slide-toggle
+              formControlName = "CA_utilities_compensation_is_applicable"
+              [checked]="service.caUtilitiesCompensationIsApplicable$.value"
+              (change)="service.caUtilitiesCompensationIsApplicableChange($event)">
+              <span *ngIf="service.caUtilitiesCompensationIsApplicable$.value == true">Да</span>
+              <span *ngIf="service.caUtilitiesCompensationIsApplicable$.value == false">Нет</span>
+            </mat-slide-toggle>
+          </div>
+        </mat-grid-tile>
+      </div>
+
+      <div [formGroup]="service.form_contract"
+           label="Гарантийное обеспечение">
+        <mat-grid-tile colspan="4">
+                        <span class="paragraph_tile_left">
+                          Арендатор вносит гарантийное обеспечение?</span>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="1">
+          <div class="toggle_tile_align_left">
+            <mat-slide-toggle
+              formControlName = "guarantee_deposit_required"
+              [checked]="service.guaranteeDepositIsRequired$.value"
+              (change)="service.guaranteeDepositRequiredChange($event)">
+              <span *ngIf="service.guaranteeDepositIsRequired$.value == true">Да</span>
+              <span *ngIf="service.guaranteeDepositIsRequired$.value == false">Нет</span>
+            </mat-slide-toggle>
+          </div>
+        </mat-grid-tile>
+      </div>
+
+      <div [formGroup]="service.form_contract"
+           label="Страхование">
+        <mat-grid-tile colspan="5">
+                              <span class="paragraph_tile_right">
+                                Арендатор предоставляет страховой полис?</span>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="1">
+          <div class="toggle_tile_align_right">
+
+            <mat-slide-toggle
+              formControlName = "insurance_required"
+              [checked]="service.insuranceIsRequired$.value"
+              (change)="service.insuranceRequiredChange($event)">
+              <span *ngIf="service.insuranceIsRequired$.value == true">Да</span>
+              <span *ngIf="service.insuranceIsRequired$.value == false">Нет</span>
+            </mat-slide-toggle>
+          </div>
+        </mat-grid-tile>
+      </div>
+    </mat-grid-list>
+    <mat-divider></mat-divider>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button
+            mat-raised-button
+            color="accent"
+            type="button"
+            (click)="onClose()"
+
+          >Отмена</button>
+
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_contract.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperNext>Далее/Пропустить</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+
+
+
+  </mat-step>
+
+  <mat-step [stepControl]="service.form_contract">
+    <form [formGroup]="service.form_contract" label="Арендная плата и ТО">
+      <ng-template matStepLabel>{{service.fixedRentNameSubject.value}}{{service.turnoverFeeName.value}}</ng-template>
+      <mat-divider></mat-divider>
+
+      <mat-grid-list cols="12" rowHeight="75px">
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">{{service.fixedRentNameSubject.value}} указывается за 1 кв.м. помещения или за помещение полностью?</p>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="7">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="fixed_rent_calculation_method">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.CalculationMethod">{{option.viewValue}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">За какой период времени указывается {{service.fixedRentNameSubject.value}}?</p>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="7">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="fixed_rent_calculation_period">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.CalculationPeriod">{{option.viewValue}}</mat-option>
+            </mat-select>
+            <mat-hint align="start">Например: ХХХ рублей {{service.fixedRentCalculationObjectSubject.value}} в месяц
+              или ХХХ рублей {{service.fixedRentCalculationObjectSubject.value}} в год</mat-hint>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">{{service.fixedRentNameSubject.value}} оплачивается в порядке предоплаты или постоплаты?</p>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="3">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="fixed_rent_prepayment_or_postpayment">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.PrepaymentOrPostpayment">{{option.viewValue}}</mat-option>
+            </mat-select>
+
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="4">
+          <mat-form-field appearance="fill" *ngIf="service.fixedRentPrePaymentOrPostPayment.value == 'Prepayment'">
+            <mat-label>Число в предшествующем месяце</mat-label>
+            <mat-select
+              placeholder="Число в предшествующем месяце"
+              formControlName="fixed_rent_advance_payment_day">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+            </mat-select>
+            <mat-hint align="start">Срок оплаты за следующий месяц</mat-hint>
+          </mat-form-field>
+          <mat-form-field appearance="fill" *ngIf="service.fixedRentPrePaymentOrPostPayment.value == 'Postpayment'">
+            <mat-label>Число в следующем месяце</mat-label>
+            <mat-select
+              placeholder="Число в следующем месяце"
+              formControlName="fixed_rent_post_payment_day">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+            </mat-select>
+            <mat-hint align="start">Срок оплаты за предыдущий месяц</mat-hint>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">Каким образом {{service.fixedRentNameSubject.value}} ежегодно индексируется?</p>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="3">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="fixed_rent_indexation_type">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.indexationType">{{option.viewValue}}</mat-option>
+            </mat-select>
+
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="4">
+          <mat-form-field appearance="fill">
+            <mat-label>Значение % индексации</mat-label>
+            <input matInput formControlName="fixed_rent_indexation_fixed" autocomplete="off">
+            <mat-error>Введите число с 2 знаками после точки</mat-error>
+            <mat-hint>{{service.fixedRentNameSubject.value}} увеличивется ежегодно на этот %</mat-hint>
+          </mat-form-field>
+        </mat-grid-tile>
+
+      </mat-grid-list>
+    </form>
+    <div *ngIf="service.turnoverFeeIsApplicable$.value == true">
+
+      <form [formGroup]="service.form_contract" label="Плата от товарооборота">
+        <mat-grid-list cols="12" rowHeight="75px">
+          <mat-grid-tile colspan="5">
+            <p class="paragraph_tile">За какой период времени рассчитывается Плата от товарооборота?</p>
+          </mat-grid-tile>
+          <mat-grid-tile colspan="7">
+            <mat-form-field appearance="fill">
+              <mat-label></mat-label>
+              <mat-select
+                placeholder=""
+                formControlName="turnover_fee_period">
+                <mat-option [value]="option.value" *ngFor="let option of enumService.turnoverFeePeriods">{{option.viewValue}}</mat-option>
+              </mat-select>
+              <mat-hint align="start">Арендатор предоставляет данные о товарообороте за этот период</mat-hint>
+            </mat-form-field>
+          </mat-grid-tile>
+        </mat-grid-list>
+
+        <mat-grid-list cols="12" rowHeight="90px">
+          <mat-grid-tile colspan="3">
+            <p class="paragraph_tile">До какого числа предоставляются данные о товарообороте?</p>
+          </mat-grid-tile>
+          <mat-grid-tile colspan="3">
+            <mat-form-field appearance="fill">
+              <mat-label></mat-label>
+              <mat-select
+                placeholder=""
+                formControlName="turnover_data_providing_day">
+                <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+              </mat-select>
+              <mat-hint align="start">Число в месяце после оборотного периода</mat-hint>
+            </mat-form-field>
+          </mat-grid-tile>
+
+          <mat-grid-tile colspan="3">
+            <p class="paragraph_tile">До какого числа оплачивается плата от товарооборота?</p>
+          </mat-grid-tile>
+          <mat-grid-tile colspan="3">
+            <mat-form-field appearance="fill">
+              <mat-label></mat-label>
+              <mat-select
+                placeholder=""
+                formControlName="turnover_fee_payment_day">
+                <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+              </mat-select>
+              <mat-hint align="start">Число в месяце после оборотного периода</mat-hint>
+            </mat-form-field>
+          </mat-grid-tile>
+        </mat-grid-list>
+      </form>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button
+            mat-raised-button
+            color="accent"
+            type="button"
+            (click)="onClose()"
+
+          >Отмена</button>
+
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_contract.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+          <button mat-button matStepperNext>Далее/Пропустить</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+
+  <mat-step *ngIf="service.periodicalFeeContractArray.length > 0">
+    <ng-template matStepLabel>Регулярные сборы</ng-template>
+    <mat-divider></mat-divider>
+
+    <form [formGroup]="service.periodicalFeeTabsForm">
+      <ng-container formArrayName="periodicalFeeArray">
+        <mat-tab-group>
+          <mat-tab
+            *ngFor="let fee of service.periodicalFeeTabs.controls; index as i"
+          >
+            <ng-template mat-tab-label>
+              <span class="tab_label_span1">{{service.periodicalFeeContractArray[i].periodical_fee_name}}</span>
+            </ng-template>
+            <ng-container [formGroupName]="i">
+              <input type="hidden" formControlName="id">
+              <input type="hidden" formControlName="rent_contract_id">
+
+              <mat-grid-list cols="12" rowHeight="75px">
+                <mat-grid-tile colspan="5">
+                  <p class="paragraph_tile">{{service.periodicalFeeContractArray[i].periodical_fee_name}} указывается за 1 кв.м. помещения или за помещение полностью?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="periodical_fee_calculation_method">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.CalculationMethod">{{option.viewValue}}</mat-option>
+                    </mat-select>
+                    <mat-hint align="start"></mat-hint>
+
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5">
+                  <p class="paragraph_tile">За какой период времени указывается {{service.periodicalFeeContractArray[i].periodical_fee_name}}?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="periodical_fee_calculation_period">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.CalculationPeriod">{{option.viewValue}}</mat-option>
+                    </mat-select>
+
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5" *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">
+                  <p class="paragraph_tile">Сколько составит {{service.periodicalFeeContractArray[i].periodical_fee_name}} за 1 кв. м. помещения {{service.periodicalFeeCalculationPeriod.value[i]}}?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7" *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <input matInput formControlName="periodical_fee_per_sqm" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint align="start">Укажите, только если этот размер ставки является единым для всех арендаторов</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+
+                <mat-grid-tile colspan="5" *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">
+                  <p class="paragraph_tile">Сколько составит {{service.periodicalFeeContractArray[i].periodical_fee_name}} за всё помещение {{service.periodicalFeeCalculationPeriod.value[i]}}?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7" *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <input matInput formControlName="periodical_fee_total_payment" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint align="start">Укажите, только если этот размер платежа является единым для всех арендаторов</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+
+                <mat-grid-tile colspan="5">
+                  <p class="paragraph_tile">{{service.periodicalFeeContractArray[i].periodical_fee_name}} оплачивается в порядке предоплаты или постоплаты?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="3">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="periodical_fee_prepayment_or_postpayment">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.PrepaymentOrPostpayment">{{option.viewValue}}</mat-option>
+                    </mat-select>
+
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="4">
+                  <mat-form-field appearance="fill" *ngIf="service.periodicalFeePrePaymentOrPostPayment.value[i] == 'Prepayment'">
+                    <mat-label>Число в предшествующем месяце</mat-label>
+                    <mat-select
+                      placeholder="Число в предшествующем месяце"
+                      formControlName="periodical_fee_advance_payment_day">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+                    </mat-select>
+                    <mat-hint align="start">Срок оплаты за следующий месяц</mat-hint>
+                  </mat-form-field>
+                  <mat-form-field appearance="fill" *ngIf="service.periodicalFeePrePaymentOrPostPayment.value[i] == 'Postpayment'">
+                    <mat-label>Число в следующем месяце</mat-label>
+                    <mat-select
+                      placeholder="Число в следующем месяце"
+                      formControlName="periodical_fee_post_payment_day">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+                    </mat-select>
+                    <mat-hint align="start">Срок оплаты за предыдущий месяц</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5">
+                  <p class="paragraph_tile">Каким образом {{service.periodicalFeeContractArray[i].periodical_fee_name}} ежегодно индексируется?</p>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="3">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="periodical_fee_indexation_type">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.indexationType">{{option.viewValue}}</mat-option>
+                    </mat-select>
+
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="4">
+                  <mat-form-field appearance="fill">
+                    <mat-label>Значение % индексации</mat-label>
+                    <input matInput formControlName="periodical_payment_indexation_fixed" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint align="start">{{service.periodicalFeeContractArray[i].periodical_fee_name}} увеличивется ежегодно на этот %</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+              </mat-grid-list>
+            </ng-container>
+          </mat-tab>
+        </mat-tab-group>
+      </ng-container>
+    </form>
+    <mat-divider></mat-divider>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button
+            mat-raised-button
+            color="accent"
+            type="button"
+            (click)="onClose()"
+
+          >Отмена</button>
+
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_contract.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+          <button mat-button matStepperNext>Далее/Пропустить</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+
+  <mat-step *ngIf="service.oneTimeFeeContractArray.length>0">
+    <ng-template matStepLabel>Единовременные сборы</ng-template>
+    <mat-divider></mat-divider>
+
+    <form [formGroup]="service.oneTimeFeeTabsForm">
+      <ng-container formArrayName="oneTimeFeeArray">
+        <mat-tab-group>
+          <mat-tab
+            *ngFor="let fee of service.oneTimeFeeTabs.controls; index as i"
+          >
+            <ng-template mat-tab-label>
+              <span class="tab_label_span1">{{service.oneTimeFeeContractArray[i].one_time_fee_name}}</span>
+            </ng-template>
+            <ng-container [formGroupName]="i">
+              <input type="hidden" formControlName="id">
+              <input type="hidden" formControlName="rent_contract_id">
+
+              <mat-grid-list cols="12" rowHeight="75px">
+                <mat-grid-tile colspan="5">
+                  <p class="paragraph_tile">
+                    {{service.oneTimeFeeContractArray[i].one_time_fee_name}} указывается за 1 кв.м. помещения или за помещение полностью?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="one_time_fee_calculation_method">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.CalculationMethod">{{option.viewValue}}</mat-option>
+                    </mat-select>
+                    <mat-hint align="start"></mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">
+                  <p class="paragraph_tile">Сколько составит {{service.oneTimeFeeContractArray[i].one_time_fee_name}} за 1 кв. м. помещения?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <input matInput formControlName="one_time_fee_per_sqm" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint align="start">Укажите, только если этот размер ставки является единым для всех Арендаторов</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+
+                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">
+                  <p class="paragraph_tile">Сколько составит {{service.oneTimeFeeContractArray[i].one_time_fee_name}} за всё помещение?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <input matInput formControlName="one_time_fee_total_payment" autocomplete="off">
+                    <mat-error>Введите число с 2 знаками после точки</mat-error>
+                    <mat-hint align="start">Укажите, только если этот размер платежа является единым для всех Арендаторов</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5">
+                  <p class="paragraph_tile">
+                    Каким образом регулируется срок, в который оплачивается {{service.oneTimeFeeContractArray[i].one_time_fee_name}}?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="one_time_fee_payment_term">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.paymentTerm">{{option.viewValue}}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">
+                  <p class="paragraph_tile">{{service.oneTimeFeeContractArray[i].one_time_fee_name}} оплачивается не позднее</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <input matInput [matDatepicker]="pickerOneTimeFeePaymentDate" formControlName="one_time_fee_contract_payment_date" autocomplete="off">
+                    <mat-hint align="start">Укажите только, если эта дата является единой для всех Арендаторов</mat-hint>
+                    <mat-datepicker-toggle matSuffix [for]="pickerOneTimeFeePaymentDate"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerOneTimeFeePaymentDate></mat-datepicker>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Triggering_event_date'">
+                  <p class="paragraph_tile">Наступление какого события влияет на срок оплаты?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Triggering_event_date'">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="one_time_fee_payment_triggering_event">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.triggeringEvent">{{option.viewValue}}</mat-option>
+                    </mat-select>
+
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Triggering_event_date'">
+                  <p class="paragraph_tile">В какой срок после наступления события должна произойти оплата?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Triggering_event_date'">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <input matInput formControlName="one_time_fee_contract_triggering_event_related_payment_day" autocomplete="off">
+                    <mat-hint align="start">Количество дней после наступления события</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+              </mat-grid-list>
+            </ng-container>
+          </mat-tab>
+        </mat-tab-group>
+      </ng-container>
+    </form>
+    <mat-divider></mat-divider>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button
+            mat-raised-button
+            color="accent"
+            type="button"
+            (click)="onClose()"
+
+          >Отмена</button>
+
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_contract.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+          <button mat-button matStepperNext>Далее/Пропустить</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+
+  <mat-step [stepControl]="service.form_contract">
+    <ng-template matStepLabel>Ком. ресурсы</ng-template>
+    <mat-divider></mat-divider>
+
+    <form [formGroup]="service.utilityFeeTabsForm" *ngIf="service.utilityFeeContractArray.length >0">
+      <ng-container formArrayName="utilityFeeArray">
+        <mat-tab-group>
+          <mat-tab
+            *ngFor="let fee of service.utilityFeeTabs.controls; index as i"
+          >
+            <ng-template mat-tab-label>
+              <span class="tab_label_span1">{{service.utilityFeeContractArray[i].utility_name}}</span>
+            </ng-template>
+            <ng-container [formGroupName]="i">
+              <input type="hidden" formControlName="id">
+              <input type="hidden" formControlName="rent_contract_id">
+
+              <mat-grid-list cols="12" rowHeight="90px">
+                <mat-grid-tile colspan="3">
+                  <p class="paragraph_tile">До какого числа предоставляются данные прибора учета?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="3">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="compensation_counter_data_providing_day">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+                    </mat-select>
+                    <mat-hint align="start">Число в месяце, следующем за учетным</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="3">
+                  <p class="paragraph_tile">До какого числа оплачивается потребление коммунального ресурса?</p>
+                </mat-grid-tile>
+                <mat-grid-tile colspan="3">
+                  <mat-form-field appearance="fill">
+                    <mat-label></mat-label>
+                    <mat-select
+                      placeholder=""
+                      formControlName="compensation_post_payment_day">
+                      <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+                    </mat-select>
+                    <mat-hint align="start">Число в месяце, следующем за учетным</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+              </mat-grid-list>
+            </ng-container>
+          </mat-tab>
+        </mat-tab-group>
+        <mat-divider></mat-divider>
+      </ng-container>
+    </form>
+
+    <form [formGroup]="service.form_contract"
+          label="Компенсация затрат на коммунальные ресурсы для мест общего пользования"
+          *ngIf="service.caUtilitiesCompensationIsApplicable$.value == true"
+    >
+
+      <mat-grid-list cols="12" rowHeight="75px">
+
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">Каким образом рассчитывается компенсация затрат на коммунальные ресурсы для мест общего пользования?</p>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="7">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="CA_utilities_compensation_type">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.caUtilitiesCompensationType">{{option.viewValue}}</mat-option>
+            </mat-select>
+            <mat-hint align="start">Эти затраты обычно распределяются на всех арендаторов согласно их доле в аренднопригодной площади здания</mat-hint>
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+      <mat-grid-list cols="12" rowHeight="75px"
+                     *ngIf="service.caUtilitiesCompensation.value == 'Proportional to GLA'
+                       || service.caUtilitiesCompensation.value == 'Proportional to leased area'">
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">До какого числа компенсация должна быть оплачена арендатором</p>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="7">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="CA_utilities_compensation_fee_post_payment_day">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+            </mat-select>
+            <mat-hint align="start">Число в следующем месяце за оплачиваемым</mat-hint>
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+      <mat-grid-list cols="12" rowHeight="75px" *ngIf="service.caUtilitiesCompensation.value == 'Fixed'">
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">Фиксированная компенсация за коммунальные услуги мест общего пользования оплачивается в порядке предоплаты или постоплаты?</p>
+        </mat-grid-tile>
+        <mat-grid-tile colspan="3">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="CA_utilities_compensation_fee_prepayment_or_postpayment">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.PrepaymentOrPostpayment">{{option.viewValue}}</mat-option>
+            </mat-select>
+
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="4">
+          <mat-form-field appearance="fill" *ngIf="service.caUtilitiesCompensationFeePrepaymentOrPostpayment.value == 'Prepayment'">
+            <mat-label>Число в предшествующем месяце</mat-label>
+            <mat-select
+              placeholder="Число в предшествующем месяце"
+              formControlName="CA_utilities_compensation_fee_advance_payment_day">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+            </mat-select>
+            <mat-hint align="start">Срок оплаты за следующий месяц</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" *ngIf="service.caUtilitiesCompensationFeePrepaymentOrPostpayment.value == 'Postpayment'">
+            <mat-label>Число в следующем месяце</mat-label>
+            <mat-select
+              placeholder="Число в следующем месяце"
+              formControlName="CA_utilities_compensation_fee_post_payment_day">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.monthDays">{{option.viewValue}}</mat-option>
+            </mat-select>
+            <mat-hint align="start">Срок оплаты за предыдущий месяц</mat-hint>
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="5">
+          <p class="paragraph_tile">Каким образом фиксированная компенсация за коммунальные услуги мест общего пользования ежегодно индексируется?</p>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="3">
+          <mat-form-field appearance="fill">
+            <mat-label></mat-label>
+            <mat-select
+              placeholder=""
+              formControlName="CA_utilities_compensation_fixed_indexation_type">
+              <mat-option [value]="option.value" *ngFor="let option of enumService.indexationType">{{option.viewValue}}</mat-option>
+            </mat-select>
+
+          </mat-form-field>
+        </mat-grid-tile>
+
+        <mat-grid-tile colspan="4">
+          <mat-form-field appearance="fill">
+            <mat-label>Значение % индексации</mat-label>
+            <input matInput formControlName="CA_utilities_compensation_fee_fixed_indexation_type_fixed" autocomplete="off">
+            <mat-hint align="start">Фиксированная компенсация увеличивется ежегодно на этот %</mat-hint>
+          </mat-form-field>
+        </mat-grid-tile>
+      </mat-grid-list>
+
+    </form>
+    <mat-divider></mat-divider>
+    <mat-grid-list cols="2" rowHeight="40px">
+      <mat-grid-tile colspan="1">
+        <div class="btn-left">
+          <button
+            mat-raised-button
+            color="accent"
+            type="button"
+            (click)="onClose()"
+
+          >Отмена</button>
+
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="globalService.editCardTrigger$.value == false
+            || service.form_contract.invalid"
+            (click)="onSubmit()"
+          >
+            Сохранить изменения
+          </button>
+        </div>
+      </mat-grid-tile>
+      <mat-grid-tile colspan="1">
+        <div class="btn-right">
+          <button mat-button matStepperPrevious>Назад</button>
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </mat-step>
+</mat-stepper>
+
+
+
+
