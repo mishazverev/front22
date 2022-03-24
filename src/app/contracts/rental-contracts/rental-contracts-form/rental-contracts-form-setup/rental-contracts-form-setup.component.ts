@@ -17,7 +17,7 @@ import {ApiService} from "../../../../shared/services/api.service";
 import {NotificationService} from "../../../../shared/notification.service";
 import {EnumService} from "../../../../shared/services/enum.service";
 import {DatePipe} from "@angular/common";
-import {Subscription} from "rxjs";
+import {combineLatest, Subscription} from "rxjs";
 
 
 @Component({
@@ -41,6 +41,8 @@ export class RentalContractsFormSetupComponent implements OnInit {
   ) { }
   public fixedRentName$: Subscription = new Subscription;
   public fixedRentCalculationObject$: Subscription = new Subscription;
+  public fixedRentCalculationPeriod$: Subscription = new Subscription;
+  public fixedRentCalculationObjectSubject$: Subscription = new Subscription;
   public fixedRentPrePaymentOrPostPayment$: Subscription = new Subscription;
   public fixedRentIndexationType$: Subscription = new Subscription;
   public turnoverFee$: Subscription = new Subscription;
@@ -57,12 +59,38 @@ export class RentalContractsFormSetupComponent implements OnInit {
     this.fixedRentCalculationObject$ = this.service.form_contract.controls['fixed_rent_calculation_method'].valueChanges
       .pipe(
         map( data => {
-          if(data == "Per_sqm"){return ('за 1 кв. м.')
-          } else {return ('за помещение полностью')
+          if(data == "Per_sqm"){
+            this.service.form_contract.controls['fixed_rent_total_payment'].reset()
+            this.service.guaranteeCoveredDaysValue$.next(0)
+            this.service.guaranteeCoveredMonthsValue$.next(0)
+            return ('за 1 кв. м.')
+          }
+          if(data == "Total"){
+            this.service.form_contract.controls['fixed_rent_per_sqm'].reset()
+            this.service.guaranteeCoveredDaysValue$.next(0)
+            this.service.guaranteeCoveredMonthsValue$.next(0)
+            return ('за помещение полностью')
+          } else {
+            return ('')
           }}))
       .subscribe(
         data => {
           this.service.fixedRentCalculationObjectSubject.next(data)
+        })
+
+    this.fixedRentCalculationPeriod$ = this.service.form_contract.controls['fixed_rent_calculation_period'].valueChanges
+      .pipe(
+        map( data => {
+          if(data == "Year") {
+            return ('в год')
+          }
+          if(data == "Month") {
+            return ('в месяц')
+          } else {return ('')}
+        }))
+      .subscribe(
+        data => {
+          this.service.fixedRentCalculationPeriodSubject.next(data)
         })
 
     this.fixedRentPrePaymentOrPostPayment$ =
@@ -81,6 +109,7 @@ export class RentalContractsFormSetupComponent implements OnInit {
             this.service.form_contract.controls['fixed_rent_indexation_fixed'].setValue('')
           }}
         )
+
 
     this.caUtilitiesCompensation$ =
       this.service.form_contract.controls['CA_utilities_compensation_type'].valueChanges
@@ -227,7 +256,7 @@ export class RentalContractsFormSetupComponent implements OnInit {
               utilityFeeData)
           }
         )
-      this.notificationService.success('Настройки договора успешно созданы');
+      this.notificationService.success('Настройки договора успешно обновлены');
     }
     this.dialogRef.close()
   }

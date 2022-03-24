@@ -199,11 +199,12 @@
       <ng-template matStepLabel>{{service.fixedRentNameSubject.value}}{{service.turnoverFeeName.value}}</ng-template>
    <mat-grid-list cols="3" rowHeight="75px">
      <p></p>
+
      <mat-grid-tile *ngIf="service.form_contract.controls['fixed_rent_calculation_method'].value == 'Per_sqm'">
        <mat-form-field appearance="fill">
          <mat-label>{{service.fixedRentNameSubject.value}}</mat-label>
          <input matInput placeholder={{service.fixedRentNameSubject.value}} formControlName="fixed_rent_per_sqm" autocomplete="off">
-         <mat-hint>В рублях за 1 кв. м. помещения{{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
+         <mat-hint>В рублях за 1 кв. м. помещения {{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
        </mat-form-field>
      </mat-grid-tile>
 
@@ -211,7 +212,7 @@
        <mat-form-field appearance="fill">
          <mat-label>{{service.fixedRentNameSubject.value}}</mat-label>
          <input matInput placeholder={{service.fixedRentNameSubject.value}} formControlName="fixed_rent_total_payment" autocomplete="off">
-         <mat-hint>В рублях за всё помещение{{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
+         <mat-hint>В рублях за всё помещение {{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
        </mat-form-field>
      </mat-grid-tile>
 
@@ -223,7 +224,17 @@
        </mat-form-field>
      </mat-grid-tile>
 
-     <mat-grid-tile *ngIf="service.turnoverFeeIsApplicable$.value == true">
+     <mat-grid-tile *ngIf="service.turnoverFeeIsApplicable$.value == true && service.form_contract.controls['fixed_rent_indexation_type'].value == 'Fixed'">
+       <mat-form-field appearance="fill">
+         <mat-label>% платы от товарооборота</mat-label>
+         <input matInput placeholder='Какой % учитывается при расчете платы от товарооборота?' formControlName="turnover_fee" autocomplete="off">
+         <mat-hint>Какой % учитывается при расчете платы от товарооборота?</mat-hint>
+       </mat-form-field>
+     </mat-grid-tile>
+
+     <mat-grid-tile
+       colspan="2"
+       *ngIf="service.turnoverFeeIsApplicable$.value == true && service.form_contract.controls['fixed_rent_indexation_type'].value != 'Fixed'">
        <mat-form-field appearance="fill">
          <mat-label>% платы от товарооборота</mat-label>
          <input matInput placeholder='Какой % учитывается при расчете платы от товарооборота?' formControlName="turnover_fee" autocomplete="off">
@@ -236,7 +247,7 @@
     <mat-grid-list cols="3" rowHeight="30px">
       <mat-grid-tile colspan="2">
         <div class="header_tile">
-          <span>Депозит покрывает {{guaranteeCoveredMonthsValue$.value}} месяцев и {{guaranteeCoveredDaysValue$.value}} дней аренды</span>
+          <span>Депозит покрывает {{service.guaranteeCoveredMonthsValue$.value}} месяцев и {{service.guaranteeCoveredDaysValue$.value}} дней аренды</span>
         </div>
       </mat-grid-tile>
 
@@ -427,7 +438,7 @@
               <input type="hidden" formControlName="rent_contract_additional_agreement_id">
               <mat-grid-list cols="2" rowHeight="85px">
 
-                <mat-grid-tile *ngIf="service.oneTimeFeeContractArray[i].one_time_fee_calculation_method == 'Per_sqm'">
+                <mat-grid-tile *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">
                   <mat-form-field appearance="fill">
                     <mat-label>{{service.oneTimeFeeContractArray[i].one_time_fee_name}} - за 1 кв.м. помещения</mat-label>
                     <input matInput formControlName="one_time_fee_per_sqm" autocomplete="off">
@@ -436,12 +447,22 @@
                   </mat-form-field>
                 </mat-grid-tile>
 
-                <mat-grid-tile *ngIf="service.oneTimeFeeContractArray[i].one_time_fee_calculation_method == 'Total'">
+                <mat-grid-tile *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">
                   <mat-form-field appearance="fill">
                     <mat-label>{{service.oneTimeFeeContractArray[i].one_time_fee_name}} - общая сумма платежа</mat-label>
                     <input matInput formControlName="one_time_fee_total_payment" autocomplete="off">
                     <mat-error>Введите число с 2 знаками после точки</mat-error>
                     <mat-hint>В рублях за всё помещение</mat-hint>
+                  </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">
+                  <mat-form-field appearance="fill">
+                    <mat-label>Дата оплаты {{service.oneTimeFeeContractArray[i].one_time_fee_name}} по договору</mat-label>
+                    <input matInput [matDatepicker]="pickerOneTimeFeePaymentDate" formControlName="one_time_fee_contract_payment_date" autocomplete="off">
+<!--                    <mat-hint align="start">Дата оплаты {{service.oneTimeFeeContractArray[i].one_time_fee_name}} по договору</mat-hint>-->
+                    <mat-datepicker-toggle matSuffix [for]="pickerOneTimeFeePaymentDate"></mat-datepicker-toggle>
+                    <mat-datepicker #pickerOneTimeFeePaymentDate></mat-datepicker>
                   </mat-form-field>
                 </mat-grid-tile>
 

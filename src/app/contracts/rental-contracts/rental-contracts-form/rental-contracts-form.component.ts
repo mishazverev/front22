@@ -130,42 +130,35 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
       }
     })
 
-    this.guaranteeDepositCoverage$ = combineLatest([
+    this.service.guaranteeDepositCoverage$ = combineLatest([
       this.service.form_contract.controls['contracted_area'].valueChanges,
       this.service.form_contract.controls['fixed_rent_per_sqm'].valueChanges,
-      // this.service.form_contract.controls['fixed_rent_total_payment'].valueChanges,
+      this.service.form_contract.controls['fixed_rent_total_payment'].valueChanges,
+      this.service.form_contract.controls['fixed_rent_calculation_period'].valueChanges,
       this.service.form_contract.controls['guarantee_deposit_amount'].valueChanges,
+      this.service.fixedRentCalculationObjectSubject
     ]).subscribe( data=>{
       console.log(data)
 
-      this.depositCoverageCalculation(
+      this.service.depositCoverageCalculation(
         data[0],
         data[1],
         data[2],
-        // data[3],
+        data[3],
+        data[4],
+        data[5],
       )
     })
 
-    this.depositCoverageCalculation(
+    this.service.depositCoverageCalculation(
       this.service.form_contract.controls['contracted_area'].value,
       this.service.form_contract.controls['fixed_rent_per_sqm'].value,
-      this.service.form_contract.controls['guarantee_deposit_amount'].value)
+      this.service.form_contract.controls['fixed_rent_total_payment'].value,
+      this.service.form_contract.controls['fixed_rent_calculation_period'].value,
+      this.service.form_contract.controls['guarantee_deposit_amount'].value,
+      this.service.fixedRentCalculationObjectSubject.value
+    )
   }
-
-  depositCoverageCalculation(
-    contracted_area: number,
-    fixed_rent_per_sqm: number,
-    // fixed_rent_total_payment: number,
-    guarantee_deposit_amount: number){
-      if(fixed_rent_per_sqm){
-        this.guaranteeCoveredMonthsValue$.next(Math.trunc(guarantee_deposit_amount/(fixed_rent_per_sqm*contracted_area)))
-        this.guaranteeCoveredDaysValue$.next(
-          Math.trunc(((guarantee_deposit_amount/(fixed_rent_per_sqm*contracted_area))-
-            Math.trunc(guarantee_deposit_amount/(fixed_rent_per_sqm*contracted_area)))*30)
-        )
-      }
-  }
-
 
   areaSumming(area: []){
     let sum = 0

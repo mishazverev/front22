@@ -37,10 +37,7 @@
       <mat-grid-tile colspan="5">
         <p class="paragraph_tile">Какие регулярные сборы оплачивает Арендатор?</p>
       </mat-grid-tile>
-
       <mat-grid-tile colspan="7">
-
-
         <div class="mat-chip-list-wrapper">
 
           <mat-form-field appearance="fill">
@@ -339,7 +336,7 @@
           <p class="paragraph_tile">Каким образом {{service.fixedRentNameSubject.value}} ежегодно индексируется?</p>
         </mat-grid-tile>
 
-        <mat-grid-tile colspan="3">
+        <mat-grid-tile colspan="7">
           <mat-form-field appearance="fill">
             <mat-label></mat-label>
             <mat-select
@@ -351,14 +348,14 @@
           </mat-form-field>
         </mat-grid-tile>
 
-        <mat-grid-tile colspan="4">
-          <mat-form-field appearance="fill">
-            <mat-label>Значение % индексации</mat-label>
-            <input matInput formControlName="fixed_rent_indexation_fixed" autocomplete="off">
-            <mat-error>Введите число с 2 знаками после точки</mat-error>
-            <mat-hint>{{service.fixedRentNameSubject.value}} увеличивется ежегодно на этот %</mat-hint>
-          </mat-form-field>
-        </mat-grid-tile>
+<!--        <mat-grid-tile colspan="4">-->
+<!--          <mat-form-field appearance="fill">-->
+<!--            <mat-label>Значение % индексации</mat-label>-->
+<!--            <input matInput formControlName="fixed_rent_indexation_fixed" autocomplete="off">-->
+<!--            <mat-error>Введите число с 2 знаками после точки</mat-error>-->
+<!--            <mat-hint>{{service.fixedRentNameSubject.value}} увеличивется ежегодно на этот %</mat-hint>-->
+<!--          </mat-form-field>-->
+<!--        </mat-grid-tile>-->
 
       </mat-grid-list>
     </form>
@@ -496,30 +493,30 @@
                   </mat-form-field>
                 </mat-grid-tile>
 
-                <mat-grid-tile colspan="5" *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">
-                  <p class="paragraph_tile">Сколько составит {{service.periodicalFeeContractArray[i].periodical_fee_name}} за 1 кв. м. помещения {{service.periodicalFeeCalculationPeriod.value[i]}}?</p>
-                </mat-grid-tile>
-                <mat-grid-tile colspan="7" *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">
-                  <mat-form-field appearance="fill">
-                    <mat-label></mat-label>
-                    <input matInput formControlName="periodical_fee_per_sqm" autocomplete="off">
-                    <mat-error>Введите число с 2 знаками после точки</mat-error>
-                    <mat-hint align="start">Укажите, только если этот размер ставки является единым для всех арендаторов</mat-hint>
-                  </mat-form-field>
-                </mat-grid-tile>
+<!--                <mat-grid-tile colspan="5" *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">-->
+<!--                  <p class="paragraph_tile">Сколько составит {{service.periodicalFeeContractArray[i].periodical_fee_name}} за 1 кв. м. помещения {{service.periodicalFeeCalculationPeriod.value[i]}}?</p>-->
+<!--                </mat-grid-tile>-->
+<!--                <mat-grid-tile colspan="7" *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">-->
+<!--                  <mat-form-field appearance="fill">-->
+<!--                    <mat-label></mat-label>-->
+<!--                    <input matInput formControlName="periodical_fee_per_sqm" autocomplete="off">-->
+<!--                    <mat-error>Введите число с 2 знаками после точки</mat-error>-->
+<!--                    <mat-hint align="start">Укажите, только если этот размер ставки является единым для всех арендаторов</mat-hint>-->
+<!--                  </mat-form-field>-->
+<!--                </mat-grid-tile>-->
 
 
-                <mat-grid-tile colspan="5" *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">
-                  <p class="paragraph_tile">Сколько составит {{service.periodicalFeeContractArray[i].periodical_fee_name}} за всё помещение {{service.periodicalFeeCalculationPeriod.value[i]}}?</p>
-                </mat-grid-tile>
-                <mat-grid-tile colspan="7" *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">
-                  <mat-form-field appearance="fill">
-                    <mat-label></mat-label>
-                    <input matInput formControlName="periodical_fee_total_payment" autocomplete="off">
-                    <mat-error>Введите число с 2 знаками после точки</mat-error>
-                    <mat-hint align="start">Укажите, только если этот размер платежа является единым для всех арендаторов</mat-hint>
-                  </mat-form-field>
-                </mat-grid-tile>
+<!--                <mat-grid-tile colspan="5" *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">-->
+<!--                  <p class="paragraph_tile">Сколько составит {{service.periodicalFeeContractArray[i].periodical_fee_name}} за всё помещение {{service.periodicalFeeCalculationPeriod.value[i]}}?</p>-->
+<!--                </mat-grid-tile>-->
+<!--                <mat-grid-tile colspan="7" *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">-->
+<!--                  <mat-form-field appearance="fill">-->
+<!--                    <mat-label></mat-label>-->
+<!--                    <input matInput formControlName="periodical_fee_total_payment" autocomplete="off">-->
+<!--                    <mat-error>Введите число с 2 знаками после точки</mat-error>-->
+<!--                    <mat-hint align="start">Укажите, только если этот размер платежа является единым для всех арендаторов</mat-hint>-->
+<!--                  </mat-form-field>-->
+<!--                </mat-grid-tile>-->
 
 
                 <mat-grid-tile colspan="5">
@@ -562,7 +559,7 @@
                   <p class="paragraph_tile">Каким образом {{service.periodicalFeeContractArray[i].periodical_fee_name}} ежегодно индексируется?</p>
                 </mat-grid-tile>
 
-                <mat-grid-tile colspan="3">
+                <mat-grid-tile colspan="7">
                   <mat-form-field appearance="fill">
                     <mat-label></mat-label>
                     <mat-select
@@ -574,14 +571,14 @@
                   </mat-form-field>
                 </mat-grid-tile>
 
-                <mat-grid-tile colspan="4">
-                  <mat-form-field appearance="fill">
-                    <mat-label>Значение % индексации</mat-label>
-                    <input matInput formControlName="periodical_payment_indexation_fixed" autocomplete="off">
-                    <mat-error>Введите число с 2 знаками после точки</mat-error>
-                    <mat-hint align="start">{{service.periodicalFeeContractArray[i].periodical_fee_name}} увеличивется ежегодно на этот %</mat-hint>
-                  </mat-form-field>
-                </mat-grid-tile>
+<!--                <mat-grid-tile colspan="4">-->
+<!--                  <mat-form-field appearance="fill">-->
+<!--                    <mat-label>Значение % индексации</mat-label>-->
+<!--                    <input matInput formControlName="periodical_payment_indexation_fixed" autocomplete="off">-->
+<!--                    <mat-error>Введите число с 2 знаками после точки</mat-error>-->
+<!--                    <mat-hint align="start">{{service.periodicalFeeContractArray[i].periodical_fee_name}} увеличивется ежегодно на этот %</mat-hint>-->
+<!--                  </mat-form-field>-->
+<!--                </mat-grid-tile>-->
 
               </mat-grid-list>
             </ng-container>
@@ -655,30 +652,30 @@
                   </mat-form-field>
                 </mat-grid-tile>
 
-                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">
-                  <p class="paragraph_tile">Сколько составит {{service.oneTimeFeeContractArray[i].one_time_fee_name}} за 1 кв. м. помещения?</p>
-                </mat-grid-tile>
-                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">
-                  <mat-form-field appearance="fill">
-                    <mat-label></mat-label>
-                    <input matInput formControlName="one_time_fee_per_sqm" autocomplete="off">
-                    <mat-error>Введите число с 2 знаками после точки</mat-error>
-                    <mat-hint align="start">Укажите, только если этот размер ставки является единым для всех Арендаторов</mat-hint>
-                  </mat-form-field>
-                </mat-grid-tile>
+<!--                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">-->
+<!--                  <p class="paragraph_tile">Сколько составит {{service.oneTimeFeeContractArray[i].one_time_fee_name}} за 1 кв. м. помещения?</p>-->
+<!--                </mat-grid-tile>-->
+<!--                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">-->
+<!--                  <mat-form-field appearance="fill">-->
+<!--                    <mat-label></mat-label>-->
+<!--                    <input matInput formControlName="one_time_fee_per_sqm" autocomplete="off">-->
+<!--                    <mat-error>Введите число с 2 знаками после точки</mat-error>-->
+<!--                    <mat-hint align="start">Укажите, только если этот размер ставки является единым для всех Арендаторов</mat-hint>-->
+<!--                  </mat-form-field>-->
+<!--                </mat-grid-tile>-->
 
 
-                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">
-                  <p class="paragraph_tile">Сколько составит {{service.oneTimeFeeContractArray[i].one_time_fee_name}} за всё помещение?</p>
-                </mat-grid-tile>
-                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">
-                  <mat-form-field appearance="fill">
-                    <mat-label></mat-label>
-                    <input matInput formControlName="one_time_fee_total_payment" autocomplete="off">
-                    <mat-error>Введите число с 2 знаками после точки</mat-error>
-                    <mat-hint align="start">Укажите, только если этот размер платежа является единым для всех Арендаторов</mat-hint>
-                  </mat-form-field>
-                </mat-grid-tile>
+<!--                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">-->
+<!--                  <p class="paragraph_tile">Сколько составит {{service.oneTimeFeeContractArray[i].one_time_fee_name}} за всё помещение?</p>-->
+<!--                </mat-grid-tile>-->
+<!--                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">-->
+<!--                  <mat-form-field appearance="fill">-->
+<!--                    <mat-label></mat-label>-->
+<!--                    <input matInput formControlName="one_time_fee_total_payment" autocomplete="off">-->
+<!--                    <mat-error>Введите число с 2 знаками после точки</mat-error>-->
+<!--                    <mat-hint align="start">Укажите, только если этот размер платежа является единым для всех Арендаторов</mat-hint>-->
+<!--                  </mat-form-field>-->
+<!--                </mat-grid-tile>-->
 
                 <mat-grid-tile colspan="5">
                   <p class="paragraph_tile">
@@ -695,18 +692,18 @@
                   </mat-form-field>
                 </mat-grid-tile>
 
-                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">
-                  <p class="paragraph_tile">{{service.oneTimeFeeContractArray[i].one_time_fee_name}} оплачивается не позднее</p>
-                </mat-grid-tile>
-                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">
-                  <mat-form-field appearance="fill">
-                    <mat-label></mat-label>
-                    <input matInput [matDatepicker]="pickerOneTimeFeePaymentDate" formControlName="one_time_fee_contract_payment_date" autocomplete="off">
-                    <mat-hint align="start">Укажите только, если эта дата является единой для всех Арендаторов</mat-hint>
-                    <mat-datepicker-toggle matSuffix [for]="pickerOneTimeFeePaymentDate"></mat-datepicker-toggle>
-                    <mat-datepicker #pickerOneTimeFeePaymentDate></mat-datepicker>
-                  </mat-form-field>
-                </mat-grid-tile>
+<!--                <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">-->
+<!--                  <p class="paragraph_tile">{{service.oneTimeFeeContractArray[i].one_time_fee_name}} оплачивается не позднее</p>-->
+<!--                </mat-grid-tile>-->
+<!--                <mat-grid-tile colspan="7" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">-->
+<!--                  <mat-form-field appearance="fill">-->
+<!--                    <mat-label></mat-label>-->
+<!--                    <input matInput [matDatepicker]="pickerOneTimeFeePaymentDate" formControlName="one_time_fee_contract_payment_date" autocomplete="off">-->
+<!--                    <mat-hint align="start">Укажите только, если эта дата является единой для всех Арендаторов</mat-hint>-->
+<!--                    <mat-datepicker-toggle matSuffix [for]="pickerOneTimeFeePaymentDate"></mat-datepicker-toggle>-->
+<!--                    <mat-datepicker #pickerOneTimeFeePaymentDate></mat-datepicker>-->
+<!--                  </mat-form-field>-->
+<!--                </mat-grid-tile>-->
 
                 <mat-grid-tile colspan="5" *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Triggering_event_date'">
                   <p class="paragraph_tile">Наступление какого события влияет на срок оплаты?</p>

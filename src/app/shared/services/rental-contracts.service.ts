@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {BehaviorSubject, forkJoin, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, combineLatest, forkJoin, Observable, Subscription} from "rxjs";
 import {
   BrandModel,
   PremiseModel,
@@ -76,6 +76,10 @@ export class RentalContractsService {
   public insuranceIsRequired$ = new BehaviorSubject<boolean>(false)
   public guaranteeDepositIsRequired$ = new BehaviorSubject<boolean>(false)
   public guaranteeDepositTypeSubscription$: Subscription = new Subscription()
+
+  public guaranteeCoveredMonthsValue$: BehaviorSubject<number> = new BehaviorSubject<number>(0)
+  public guaranteeCoveredDaysValue$: BehaviorSubject<number> = new BehaviorSubject<number>(0)
+  public guaranteeDepositCoverage$: Subscription = new Subscription;
 
   public selectedGuaranteeDepositType = this.enumService.guaranteeDepositTypes[0].value
 
@@ -779,9 +783,17 @@ export class RentalContractsService {
         data=> {
           if(data == 'Fixed'){
             this.periodicalFeeTabs.controls[i].get('periodical_payment_indexation_fixed')?.enable()
-          } else {
+            this.periodicalFeeIndexationType.value[i] = 'Fixed'
+          }
+          if(data == 'CPI'){
             this.periodicalFeeTabs.controls[i].get('periodical_payment_indexation_fixed')?.disable()
             this.periodicalFeeTabs.controls[i].get('periodical_payment_indexation_fixed')?.setValue(null)
+            this.periodicalFeeIndexationType.value[i] = 'CPI'
+          }
+          if(data == 'Non_Indexable'){
+            this.periodicalFeeTabs.controls[i].get('periodical_payment_indexation_fixed')?.disable()
+            this.periodicalFeeTabs.controls[i].get('periodical_payment_indexation_fixed')?.setValue(null)
+            this.periodicalFeeIndexationType.value[i] = 'Non_Indexable'
           }
         })
 
@@ -1242,5 +1254,52 @@ export class RentalContractsService {
     this.insuranceIsRequired$.next($event.checked)
   }
 
-
+  depositCoverageCalculation(
+    contracted_area: number,
+    fixed_rent_per_sqm: number,
+    fixed_rent_total_payment: number,
+    fixed_rent_calculation_period: string,
+    guarantee_deposit_amount: number,
+    fixed_rent_calculation_method: string){
+    if (fixed_rent_calculation_method == 'Per_sqm'){
+      this.form_contract.controls['fixed_rent_total_payment'].reset()
+      fixed_rent_total_payment = 0
+    }
+    if (fixed_rent_calculation_method == 'Total'){
+      this.form_contract.controls['fixed_rent_per_sqm'].reset()
+      fixed_rent_per_sqm = 0
+    }
+    if (fixed_rent_calculation_period == 'Month'){
+      if(fixed_rent_per_sqm){
+        this.guaranteeCoveredMonthsValue$.next(Math.trunc(guarantee_deposit_amount/(fixed_rent_per_sqm*contracted_area)))
+        this.guaranteeCoveredDaysValue$.next(
+          Math.trunc(((guarantee_deposit_amount/(fixed_rent_per_sqm*contracted_area))-
+            Math.trunc(guarantee_deposit_amount/(fixed_rent_per_sqm*contracted_area)))*30)
+        )
+      }
+      if(fixed_rent_total_payment){
+        this.guaranteeCoveredMonthsValue$.next(Math.trunc(guarantee_deposit_amount/(fixed_rent_total_payment)))
+        this.guaranteeCoveredDaysValue$.next(
+          Math.trunc(((guarantee_deposit_amount/(fixed_rent_total_payment))-
+            Math.trunc(guarantee_deposit_amount/(fixed_rent_total_payment)))*30)
+        )
+      }
+    }
+    if (fixed_rent_calculation_period == 'Year'){
+      if(fixed_rent_per_sqm){
+        this.guaranteeCoveredMonthsValue$.next(Math.trunc(guarantee_deposit_amount/((fixed_rent_per_sqm/12)*contracted_area)))
+        this.guaranteeCoveredDaysValue$.next(
+          Math.trunc(((guarantee_deposit_amount/((fixed_rent_per_sqm/12)*contracted_area))-
+            Math.trunc(guarantee_deposit_amount/((fixed_rent_per_sqm/12)*contracted_area)))*30)
+        )
+      }
+      if(fixed_rent_total_payment){
+        this.guaranteeCoveredMonthsValue$.next(Math.trunc(guarantee_deposit_amount/(fixed_rent_total_payment/12)))
+        this.guaranteeCoveredDaysValue$.next(
+          Math.trunc(((guarantee_deposit_amount/(fixed_rent_total_payment/12))-
+            Math.trunc(guarantee_deposit_amount/(fixed_rent_total_payment/12)))*30)
+        )
+      }
+    }
+  }
 }
