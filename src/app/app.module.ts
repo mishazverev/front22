@@ -24,6 +24,7 @@ import { RentalContractsFormComponent } from './contracts/rental-contracts/renta
 import { RentalContractsSetupComponent } from './contracts/rental-contracts/rental-contracts-setup/rental-contracts-setup.component';
 import {MatProgressBarModule} from "@angular/material/progress-bar";
 import { RentalContractsFormSetupComponent } from './contracts/rental-contracts/rental-contracts-form/rental-contracts-form-setup/rental-contracts-form-setup.component';
+import {MAT_DATE_LOCALE} from "@angular/material/core";
 
 @NgModule({
   declarations: [
@@ -57,8 +58,10 @@ import { RentalContractsFormSetupComponent } from './contracts/rental-contracts/
   exports: [
   ],
   providers: [
-  DatePipe, NotificationService, MatSnackBar
-  ],
+  DatePipe, NotificationService, MatSnackBar,
+    {provide: MAT_DATE_LOCALE, useValue: 'ru-RU'},
+
+],
   bootstrap: [AppComponent],
   entryComponents: [PremiseFormComponent],
 })

@@ -17,7 +17,12 @@
 </div>
 <div class="mat-elevation-z8">
   <mat-table [dataSource]="tableData" matSort>
-    <ng-container matColumnDef="premise_number">
+
+    <ng-container matColumnDef="rent_contract_number">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Номер договора</mat-header-cell>
+      <mat-cell *matCellDef="let element">{{element.rent_contract_number}}</mat-cell>
+
+    </ng-container><ng-container matColumnDef="premise_number">
       <mat-header-cell *matHeaderCellDef mat-sort-header>Помещение</mat-header-cell>
       <mat-cell *matCellDef="let element">{{element.premise_number[0]}}</mat-cell>
     </ng-container>

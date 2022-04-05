@@ -61,7 +61,6 @@ export class EnumService {
     {value: '3_months', viewValue: 'Три месяца'},
     {value: '6_months', viewValue: 'Шесть месяцев'},
     {value: 'Year', viewValue: 'Один год'},
-
   ]
 
   PrepaymentOrPostpayment: Select[] = [

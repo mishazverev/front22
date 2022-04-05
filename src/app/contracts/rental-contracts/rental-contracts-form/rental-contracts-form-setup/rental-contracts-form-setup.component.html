@@ -236,17 +236,17 @@
             type="button"
             (click)="onClose()"
 
-          >Отмена</button>
+          >Готово</button>
 
-          <button
-            mat-raised-button
-            color="primary"
-            [disabled]="globalService.editCardTrigger$.value == false
-            || service.form_contract.invalid"
-            (click)="onSubmit()"
-          >
-            Сохранить изменения
-          </button>
+<!--          <button-->
+<!--            mat-raised-button-->
+<!--            color="primary"-->
+<!--            [disabled]="globalService.editCardTrigger$.value == false-->
+<!--            || service.form_contract.invalid"-->
+<!--            (click)="onSubmit()"-->
+<!--          >-->
+<!--            Сохранить изменения-->
+<!--          </button>-->
         </div>
       </mat-grid-tile>
       <mat-grid-tile colspan="1">
@@ -422,17 +422,17 @@
             type="button"
             (click)="onClose()"
 
-          >Отмена</button>
+          >Готово</button>
 
-          <button
-            mat-raised-button
-            color="primary"
-            [disabled]="globalService.editCardTrigger$.value == false
-            || service.form_contract.invalid"
-            (click)="onSubmit()"
-          >
-            Сохранить изменения
-          </button>
+<!--          <button-->
+<!--            mat-raised-button-->
+<!--            color="primary"-->
+<!--            [disabled]="globalService.editCardTrigger$.value == false-->
+<!--            || service.form_contract.invalid"-->
+<!--            (click)="onSubmit()"-->
+<!--          >-->
+<!--            Сохранить изменения-->
+<!--          </button>-->
         </div>
       </mat-grid-tile>
       <mat-grid-tile colspan="1">
@@ -596,17 +596,17 @@
             type="button"
             (click)="onClose()"
 
-          >Отмена</button>
+          >Готово</button>
 
-          <button
-            mat-raised-button
-            color="primary"
-            [disabled]="globalService.editCardTrigger$.value == false
-            || service.form_contract.invalid"
-            (click)="onSubmit()"
-          >
-            Сохранить изменения
-          </button>
+<!--          <button-->
+<!--            mat-raised-button-->
+<!--            color="primary"-->
+<!--            [disabled]="globalService.editCardTrigger$.value == false-->
+<!--            || service.form_contract.invalid"-->
+<!--            (click)="onSubmit()"-->
+<!--          >-->
+<!--            Сохранить изменения-->
+<!--          </button>-->
         </div>
       </mat-grid-tile>
       <mat-grid-tile colspan="1">
@@ -728,6 +728,9 @@
                     <mat-label></mat-label>
                     <input matInput formControlName="one_time_fee_contract_triggering_event_related_payment_day" autocomplete="off">
                     <mat-hint align="start">Количество дней после наступления события</mat-hint>
+                    <mat-error *ngIf="service.oneTimeFeeTabs.controls[i].hasError('pattern')">
+                      Введите количество дней
+                    </mat-error>
                   </mat-form-field>
                 </mat-grid-tile>
 
@@ -747,17 +750,17 @@
             type="button"
             (click)="onClose()"
 
-          >Отмена</button>
+          >Готово</button>
 
-          <button
-            mat-raised-button
-            color="primary"
-            [disabled]="globalService.editCardTrigger$.value == false
-            || service.form_contract.invalid"
-            (click)="onSubmit()"
-          >
-            Сохранить изменения
-          </button>
+<!--          <button-->
+<!--            mat-raised-button-->
+<!--            color="primary"-->
+<!--            [disabled]="globalService.editCardTrigger$.value == false-->
+<!--            || service.form_contract.invalid"-->
+<!--            (click)="onSubmit()"-->
+<!--          >-->
+<!--            Сохранить изменения-->
+<!--          </button>-->
         </div>
       </mat-grid-tile>
       <mat-grid-tile colspan="1">
@@ -769,7 +772,8 @@
     </mat-grid-list>
   </mat-step>
 
-  <mat-step [stepControl]="service.form_contract">
+  <mat-step [stepControl]="service.form_contract" *ngIf="service.utilityFeeContractArray.length >0
+    || service.caUtilitiesCompensationIsApplicable$.value == true">
     <ng-template matStepLabel>Ком. ресурсы</ng-template>
     <mat-divider></mat-divider>
 
@@ -848,8 +852,8 @@
       </mat-grid-list>
 
       <mat-grid-list cols="12" rowHeight="75px"
-                     *ngIf="service.caUtilitiesCompensation.value == 'Proportional to GLA'
-                       || service.caUtilitiesCompensation.value == 'Proportional to leased area'">
+                     *ngIf="service.caUtilitiesCompensation.value == 'Proportional_to_GLA'
+                       || service.caUtilitiesCompensation.value == 'Proportional_to_leased_area'">
         <mat-grid-tile colspan="5">
           <p class="paragraph_tile">До какого числа компенсация должна быть оплачена арендатором</p>
         </mat-grid-tile>
@@ -940,17 +944,17 @@
             type="button"
             (click)="onClose()"
 
-          >Отмена</button>
+          >Готово</button>
 
-          <button
-            mat-raised-button
-            color="primary"
-            [disabled]="globalService.editCardTrigger$.value == false
-            || service.form_contract.invalid"
-            (click)="onSubmit()"
-          >
-            Сохранить изменения
-          </button>
+<!--          <button-->
+<!--            mat-raised-button-->
+<!--            color="primary"-->
+<!--            [disabled]="globalService.editCardTrigger$.value == false-->
+<!--            || service.form_contract.invalid"-->
+<!--            (click)="onSubmit()"-->
+<!--          >-->
+<!--            Сохранить изменения-->
+<!--          </button>-->
         </div>
       </mat-grid-tile>
       <mat-grid-tile colspan="1">

@@ -18,6 +18,7 @@ import {NotificationService} from "../../../../shared/notification.service";
 import {EnumService} from "../../../../shared/services/enum.service";
 import {DatePipe} from "@angular/common";
 import {combineLatest, Subscription} from "rxjs";
+import {FormArray} from "@angular/forms";
 
 
 @Component({
@@ -97,7 +98,7 @@ export class RentalContractsFormSetupComponent implements OnInit {
       this.service.form_contract.controls['fixed_rent_prepayment_or_postpayment'].valueChanges
         .subscribe(data => {
           this.service.fixedRentPrePaymentOrPostPayment.next(data)
-          console.log(data)})
+        })
 
     this.fixedRentIndexationType$ =
       this.service.form_contract.controls['fixed_rent_indexation_type'].valueChanges
@@ -115,13 +116,13 @@ export class RentalContractsFormSetupComponent implements OnInit {
       this.service.form_contract.controls['CA_utilities_compensation_type'].valueChanges
         .subscribe(data => {
           this.service.caUtilitiesCompensation.next(data)
-          console.log(data)})
+        })
 
     this.caUtilitiesCompensationFeePrepaymentOrPostpayment$ =
       this.service.form_contract.controls['CA_utilities_compensation_fee_prepayment_or_postpayment'].valueChanges
         .subscribe(data => {
           this.service.caUtilitiesCompensationFeePrepaymentOrPostpayment.next(data)
-          console.log(data)})
+        })
 
     this.caUtilitiesCompensationFeeFixedIndexationType$ =
       this.service.form_contract.controls['CA_utilities_compensation_fixed_indexation_type'].valueChanges
@@ -135,6 +136,21 @@ export class RentalContractsFormSetupComponent implements OnInit {
         )
   }
 
+  // submitFees(periodicalFeeTabs: FormArray)
+  // {
+  //   for (let fee of periodicalFeeTabs.controls){
+  //     if (!fee.value['id']){
+  //       console.log(fee.value)
+  //       this.apiService.createRentalContractPeriodicalFee(fee.value).subscribe(
+  //         data => {
+  //           // @ts-ignore
+  //           fee.value['id'] = data.id
+  //         }
+  //       )
+  //     }
+  //   }
+  // }
+
   submitFee(
     rentalContractData: RentalContractModel,
     periodicalFeeData: RentalContractPeriodicalFeeModel[],
@@ -142,23 +158,28 @@ export class RentalContractsFormSetupComponent implements OnInit {
     utilityFeeData: RentalContractUtilityFeeModel[])
   {
     for (let fee of periodicalFeeData){
-      console.log(fee)
       fee.rent_contract_id = rentalContractData.id
       fee.last_updated = new Date
-      console.log(fee.id)
       if (!fee.id){
         this.apiService.createRentalContractPeriodicalFee(fee).subscribe(
-          data => console.log(data)
+          data=> {
+            // @ts-ignore
+            for (fee of this.service.periodicalFeeTabs.controls){
+              // @ts-ignore
+              console.log(fee.value['id'])
+
+            }
+            console.log('Periodical fee is created')
+          }
         )
       }
       if (fee.id){
         this.apiService.updateRentalContractPeriodicalFee(fee.id, fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('Periodical fee is updated')
         )
       }
     }
     for (let fee of oneTimeFeeData){
-      console.log(fee.id)
       fee.rent_contract_id = rentalContractData.id
       fee.last_updated = new Date
       // @ts-ignore
@@ -166,27 +187,26 @@ export class RentalContractsFormSetupComponent implements OnInit {
 
       if (!fee.id){
         this.apiService.createRentalContractOneTimeFee(fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('One time fee is created')
         )
       }
       if (fee.id){
         this.apiService.updateRentalContractOneTimeFee(fee.id, fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('One time fee is updated')
         )
       }
     }
     for (let fee of utilityFeeData){
-      console.log(fee)
       fee.rent_contract_id = rentalContractData.id
       fee.last_updated = new Date
       if (!fee.id){
         this.apiService.createRentalContractUtilityFee(fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('Utility fee is created')
         )
       }
       if (fee.id){
         this.apiService.updateRentalContractUtilityFee(fee.id, fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('Utility fee is updated')
         )
       }
     }
@@ -232,7 +252,6 @@ export class RentalContractsFormSetupComponent implements OnInit {
         .pipe(
           tap(
             () => {
-              console.log(periodicalFeeData)
               this.submitFee(
                 rentalContractData,
                 periodicalFeeData,
@@ -260,6 +279,10 @@ export class RentalContractsFormSetupComponent implements OnInit {
     }
     this.dialogRef.close()
   }
+
+  onSubmitAlt(){
+
+}
 
   onClose() {
     this.dialogRef.close()

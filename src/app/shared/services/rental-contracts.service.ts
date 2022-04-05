@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import {BehaviorSubject, combineLatest, forkJoin, Observable, Subscription} from "rxjs";
 import {
   BrandModel,
@@ -15,7 +15,7 @@ import {
   RentalContractOneTimeFeeModel,
   RentalContractUtilityFeeModel, Counter,
 } from "../../models/models";
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {ApiService} from "./api.service";
 import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {EnumService} from "./enum.service";
@@ -27,7 +27,7 @@ import {concatMap, map, tap} from "rxjs/operators";
 import {
   RentalContractsSetupComponent
 } from "../../contracts/rental-contracts/rental-contracts-setup/rental-contracts-setup.component";
-
+import {inputValidatorInArray} from "../validators/validators";
 
 @Injectable({
   providedIn: 'root'
@@ -54,10 +54,39 @@ export class RentalContractsService {
 
   public oneTimeFeeCalculationPeriod = new BehaviorSubject<string[]>([])
   public oneTimeFeePaymentTerm = new BehaviorSubject<string[]>([])
+  public oneTimeFeeTriggeringEvent = new BehaviorSubject<string[]>([])
+  public oneTimeFeeTriggeringEventDay = new BehaviorSubject<number[]>([])
   public oneTimeFeeNameSubject = new BehaviorSubject<string>('')
   public oneTimeFeeMethod = new BehaviorSubject<string[]>([])
+  public oneTimeFeeTriggeringEventSubscriptionArray: Subscription[] = []
+  public oneTimeFeeTriggeringEventDaySubscriptionArray: Subscription[] = []
   public oneTimeFeePaymentSubscriptionArray: Subscription[] = []
   public oneTimeFeeMethodSubscriptionArray: Subscription[] = []
+
+// RENT CONTRACT DATES
+  public rentContractDateSubscription$: Subscription = new Subscription()
+  public rentContractDateSubscription_2$: Subscription = new Subscription()
+  public rentContractDateSubscription_3$: Subscription = new Subscription()
+
+  public rentContractSigningDate$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()))
+  public rentContractSigningDateMin$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()-50, 1, 1))
+  public rentContractSigningDateMax$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()+50, 1, 1))
+
+  public rentContractExpirationDate$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()))
+  public rentContractExpirationDateMin$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()-50, 1, 1))
+  public rentContractExpirationDateMax$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()+50, 1, 1))
+
+  public rentContractActOfTransferDateMin$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()-50, 1, 1))
+  public rentContractActOfTransferDateMax$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()+50, 1, 1))
+
+  public rentContractRentStartDateMin$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()-50, 1, 1))
+  public rentContractRentStartDateMax$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()+50, 1, 1))
+
+  public rentContractPremiseReturnDateMin$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()-50, 1, 1))
+  public rentContractPremiseReturnDateMax$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()+50, 1, 1))
+
+  public rentContractStopBillingDateMin$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()-50, 1, 1))
+  public rentContractStopBillingDateMax$ = new BehaviorSubject<Date>(new Date(new Date().getFullYear()+50, 1, 1))
 
   public fixedRentNameSubject = new BehaviorSubject<string>('')
   public fixedRentCalculationPeriodSubject = new BehaviorSubject<string>('')
@@ -83,6 +112,9 @@ export class RentalContractsService {
 
   public selectedGuaranteeDepositType = this.enumService.guaranteeDepositTypes[0].value
 
+  public rentalContractNumbersArray = new BehaviorSubject<string[]>([])
+  public premiseUsedArray = new BehaviorSubject<PremiseModel[]>([])
+
   constructor(
     public fb: FormBuilder,
     public apiService: ApiService,
@@ -93,6 +125,7 @@ export class RentalContractsService {
 ){}
 
   premises: PremiseModel[] = []
+
   tenantContractors: TenantModel[] = []
   brands: BrandModel[] = []
   selectedTenantBrands: BrandModel[] = []
@@ -156,7 +189,6 @@ export class RentalContractsService {
     user_updated: ""
   }
 
-
   periodicalFeeSetupArray: RentalContractPeriodicalFeeSetupModel[] = [] //PeriodicalFee setup array
   periodicalFeeContractArray: RentalContractPeriodicalFeeModel[] = []// PeriodicalFee array
 
@@ -189,19 +221,17 @@ export class RentalContractsService {
       }
 
   form_contract = this.fb.group({
-
     id: [''],
-    rent_contract_number: [''],
-
-    rent_contract_signing_date: [''],
-    rent_contract_expiration_date: [''],
+    rent_contract_number: ['', [Validators.required, this.inputRentalContractNumber()]],
+    rent_contract_signing_date: ['', Validators.required],
+    rent_contract_expiration_date: ['', Validators.required],
 
     building_id: [''],
-    premise_id: [''],
-    contracted_area: [''],
+    premise_id: ['', Validators.required],
+    contracted_area: ['', [Validators.required, Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")]],
 
-    tenant_contractor_id: [''],
-    brand: [''],
+    tenant_contractor_id: ['', Validators.required],
+    brand: ['', Validators.required],
 
     act_of_transfer_date: [''],
     rent_start_date: [''],
@@ -213,36 +243,36 @@ export class RentalContractsService {
     fixed_rent_payment_period: [''],
     fixed_rent_calculation_method: [''],
 
-    fixed_rent_per_sqm: [''],
-    fixed_rent_total_payment: [''],
+    fixed_rent_per_sqm: ['', Validators.pattern("^[0-9]{1,12}(\.[0-9]{1,2})?$")],
+    fixed_rent_total_payment: ['', Validators.pattern("^[0-9]{1,12}(\.[0-9]{1,2})?$")],
     fixed_rent_prepayment_or_postpayment: [''],
 
-    fixed_rent_advance_payment_day: [''],
-    fixed_rent_post_payment_day: [''],
+    fixed_rent_advance_payment_day: ['',Validators.pattern("^[0-9]{1,2}")],
+    fixed_rent_post_payment_day: ['', Validators.pattern("^[0-9]{1,2}")],
     fixed_rent_indexation_type: [''],
-    fixed_rent_indexation_fixed: [''],
+    fixed_rent_indexation_fixed: ['', Validators.pattern("^[0-9]{1,2}(\.[0-9]{1,2})?$")],
 
     turnover_fee_is_applicable: true,
-    turnover_fee: [''],
+    turnover_fee: ['', Validators.pattern("^[0-9]{1,2}(\.[0-9]{1,2})?$")],
     turnover_fee_period: [''],
-    turnover_data_providing_day: [''],
-    turnover_fee_payment_day: [''],
+    turnover_data_providing_day: ['', Validators.pattern("^[0-9]{1,2}")],
+    turnover_fee_payment_day: ['', Validators.pattern("^[0-9]{1,2}")],
 
     CA_utilities_compensation_is_applicable: true,
     CA_utilities_compensation_type: [''],
 
     CA_utilities_compensation_fixed_indexation_type: [''],
-    CA_utilities_compensation_fee_fixed: [''],
-    CA_utilities_compensation_fee_fixed_indexation_type_fixed: [''],
+    CA_utilities_compensation_fee_fixed: ['', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")],
+    CA_utilities_compensation_fee_fixed_indexation_type_fixed: ['', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")],
 
     CA_utilities_compensation_fee_prepayment_or_postpayment: [''],
-    CA_utilities_compensation_fee_advance_payment_day: [''],
-    CA_utilities_compensation_fee_post_payment_day: [''],
+    CA_utilities_compensation_fee_advance_payment_day: ['', Validators.pattern("^[0-9]{1,2}")],
+    CA_utilities_compensation_fee_post_payment_day: ['', Validators.pattern("^[0-9]{1,2}")],
 
     guarantee_deposit_required: true,
     guarantee_deposit_coverage_number_of_periods: [''],
     guarantee_deposit_type: [''],
-    guarantee_deposit_amount: [''],
+    guarantee_deposit_amount: ['', Validators.pattern("^[0-9]{1,15}(\.[0-9]{1,2})?$")],
     guarantee_deposit_contract_providing_date: [''],
     guarantee_deposit_actual_providing_date: [''],
     guarantee_bank_guarantee_expiration_date: [''],
@@ -294,6 +324,7 @@ export class RentalContractsService {
   //New Contract
 
   initializeNewRentalContractCard(){
+    console.log(this.rentalContractNumbersArray.value)
     this.form_contract.setValue({
       id: '',
       rent_contract_number: '',
@@ -343,7 +374,7 @@ export class RentalContractsService {
 
       guarantee_deposit_required: this.contractSetup[0].guarantee_deposit_required,
       guarantee_deposit_coverage_number_of_periods: this.contractSetup[0].guarantee_deposit_coverage_number_of_periods,
-      guarantee_deposit_type: '',
+      guarantee_deposit_type: 'Cash',
       guarantee_deposit_amount: '',
       guarantee_deposit_contract_providing_date: '',
       guarantee_deposit_actual_providing_date: '',
@@ -358,12 +389,10 @@ export class RentalContractsService {
       user_updated: '',
     })
     if (this.form_contract.controls['turnover_fee_is_applicable'].value == true){
-      console.log(' и % от ТО')
       this.turnoverFeeName.next( ' и % от ТО')
       this.turnoverFeeIsApplicable$.next(true)
     }
     if (this.form_contract.controls['turnover_fee_is_applicable'].value == false){
-      console.log('нет % от ТО')
       this.turnoverFeeName.next( '')
       this.turnoverFeeIsApplicable$.next(false)
     }
@@ -394,6 +423,9 @@ export class RentalContractsService {
     if(this.form_contract.controls['insurance_required'].value == false){
       this.insuranceIsRequired$.next(false)
     }
+    console.log(this.form_contract.controls['rent_contract_signing_date'].value)
+
+
 
     console.log(this.periodicalFeeSetupArray.length)
     console.log(this.oneTimeFeeSetupArray.length)
@@ -414,6 +446,8 @@ export class RentalContractsService {
       this.periodicalFeeNameSubject.next('')
       this.oneTimeFeeNameSubject.next('')
     }
+    this.rentalContractAddSubscription()
+
     for(let fee of this.periodicalFeeSetupArray){
       this.newPeriodicalFeeContractArray(fee)
     }
@@ -424,7 +458,6 @@ export class RentalContractsService {
       this.newUtilityFeeContractArray(fee)
     }
     for(let fee of this.periodicalFeeContractArray){
-      console.log(this.periodicalFeeContractArray)
       this.populatePeriodicalFeeTab(fee)
     }
     for(let fee of this.oneTimeFeeContractArray){
@@ -436,10 +469,7 @@ export class RentalContractsService {
     for(let fee of this.periodicalFeeContractArray){
       this.periodicalFeeAddSubscription(fee)
     }
-    this.rentalContractAddSubscription()
     this.rentContractIsLoaded$.next(true)
-    console.log(this.rentContractIsLoaded$.value)
-
     this.globalService.editCardTrigger$.next(true)
   }
 
@@ -551,7 +581,8 @@ export class RentalContractsService {
         one_time_fee_per_sqm: new FormControl(fee.one_time_fee_per_sqm, Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
         one_time_fee_total_payment: new FormControl(fee.one_time_fee_total_payment, Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
         one_time_fee_contract_payment_date: new FormControl(fee.one_time_fee_contract_payment_date),
-        one_time_fee_contract_triggering_event_related_payment_day: new FormControl(fee.one_time_fee_contract_triggering_event_related_payment_day),
+        one_time_fee_contract_triggering_event_related_payment_day:
+          new FormControl(fee.one_time_fee_contract_triggering_event_related_payment_day, Validators.pattern("^[0-9]{1,3}")),
         last_updated: new FormControl(fee.last_updated),
         user_updated: new FormControl(fee.user_updated),
       })
@@ -588,6 +619,10 @@ export class RentalContractsService {
   }
 
   populateRentalContractCard(data: RentalContractModelExpanded) {
+    const index = this.rentalContractNumbersArray.value.indexOf(data.rent_contract_number, 0);
+    if (index > -1) {
+      this.rentalContractNumbersArray.value.splice(index, 1);
+    }
 
     this.form_contract.setValue({
       id: data.id,
@@ -652,6 +687,9 @@ export class RentalContractsService {
       user_updated: data.user_updated,
     })
 
+    this.rentContractSigningDate$.next(data.rent_contract_signing_date)
+    this.rentContractExpirationDate$.next(data.rent_contract_expiration_date)
+
     if (this.form_contract.controls['turnover_fee_is_applicable'].value == true){
       this.turnoverFeeName.next( ' и % от ТО')
       this.turnoverFeeIsApplicable$.next(true)
@@ -705,15 +743,12 @@ export class RentalContractsService {
     }
 
     for(let fee of this.periodicalFeeContractArray){
-      console.log(fee)
       this.populatePeriodicalFeeTab(fee)
     }
     for(let fee of this.oneTimeFeeContractArray){
-      console.log(fee)
       this.populateOneTimeFeeTab(fee)
     }
     for(let fee of this.utilityFeeContractArray){
-      console.log(fee)
       this.populateUtilityFeeTab(fee)
     }
     for(let fee of this.periodicalFeeContractArray){
@@ -724,14 +759,17 @@ export class RentalContractsService {
     console.log(this.rentContractIsLoaded$.value)
   }
 
-  rentalContractAddSubscription(){
-    if (this.form_contract.controls['guarantee_deposit_type'].value == 'Cash'
-      || this.form_contract.controls['guarantee_deposit_type'].value == 'Corporate_guarantee'){
-      this.form_contract.controls['guarantee_bank_guarantee_expiration_date'].reset()
-      this.form_contract.controls['guarantee_bank_guarantee_expiration_date'].disable()
+  rentalContractDatesCalculation(){
+    if (this.form_contract.controls['']){
     }
+  }
+
+  rentalContractAddSubscription(){
+    console.log('Rent Contract Subscription added')
+
     this.guaranteeDepositTypeSubscription$ = this.form_contract.controls['guarantee_deposit_type'].valueChanges.subscribe(
       data => {
+        console.log(data)
         if (data == 'Cash' || data == 'Corporate_guarantee'){
           this.form_contract.controls['guarantee_bank_guarantee_expiration_date'].reset()
           this.form_contract.controls['guarantee_bank_guarantee_expiration_date'].disable()
@@ -741,6 +779,93 @@ export class RentalContractsService {
         }
       }
     )
+
+      this.rentContractDateSubscription$ = combineLatest([
+      this.form_contract.controls['rent_contract_signing_date'].valueChanges,
+      this.form_contract.controls['rent_contract_expiration_date'].valueChanges,
+      ]).subscribe(data => {
+      console.log(data)
+      if (data[0]){
+        this.rentContractSigningDate$.next(data[0])
+        this.rentContractExpirationDateMin$.next(data[0])
+        this.rentContractActOfTransferDateMin$.next(data[0])
+        this.rentContractPremiseReturnDateMin$.next(data[0])
+        this.rentContractRentStartDateMin$.next(data[0])
+        this.rentContractStopBillingDateMin$.next(data[0])
+      }
+      if(data[1]){
+        this.rentContractExpirationDate$.next(data[1])
+        this.rentContractSigningDateMax$.next(data[1])
+        this.rentContractActOfTransferDateMax$.next(data[1])
+        this.rentContractPremiseReturnDateMax$.next(data[1])
+        this.rentContractRentStartDateMax$.next(data[1])
+        this.rentContractStopBillingDateMax$.next(data[1])
+      }
+      if (!data[0]){
+        this.rentContractSigningDate$.next(new Date(new Date().getFullYear()))
+        this.rentContractExpirationDateMin$.next(new Date(new Date().getFullYear()-50, 1, 1))}
+      if (!data[1]){
+        this.rentContractSigningDateMax$.next(new Date(new Date().getFullYear()+50, 1, 1))
+        this.rentContractExpirationDate$.next(new Date(new Date().getFullYear()))}
+      if (data[0] && data[1]){
+        this.form_contract.controls['act_of_transfer_date'].enable()
+        this.form_contract.controls['premise_return_date'].enable()
+        this.form_contract.controls['rent_start_date'].enable()
+        this.form_contract.controls['stop_billing_date'].enable()
+      }
+      if (!data[0] || !data[1]){
+        this.form_contract.controls['act_of_transfer_date'].disable()
+        this.form_contract.controls['premise_return_date'].disable()
+        this.form_contract.controls['rent_start_date'].disable()
+        this.form_contract.controls['stop_billing_date'].disable()
+      }
+    }
+    )
+
+      this.rentContractDateSubscription_2$ = combineLatest([
+        this.form_contract.controls['act_of_transfer_date'].valueChanges,
+        this.form_contract.controls['rent_start_date'].valueChanges,
+        this.form_contract.controls['stop_billing_date'].valueChanges,
+        this.form_contract.controls['premise_return_date'].valueChanges,
+      ]).subscribe(( data => {
+        if(data[0]){
+          this.rentContractRentStartDateMin$.next(data[0])
+          this.rentContractSigningDateMax$.next(data[0])
+          if(!data[1] && !data[2] && !data[3]){this.rentContractExpirationDateMin$.next(data[0])}
+          if(data[1] && !data[2]){this.rentContractPremiseReturnDateMin$.next(data[1])}
+          if(!data[1] && data[2]){this.rentContractPremiseReturnDateMin$.next(data[2])}
+          if(!data[1] && !data[2]){this.rentContractPremiseReturnDateMin$.next(data[0])}
+          if(data[1]){this.rentContractStopBillingDateMin$.next(data[1])}
+          if(!data[1]){this.rentContractStopBillingDateMin$.next(data[0])}
+        }
+        if(data[1]){
+          this.rentContractActOfTransferDateMax$.next(data[1])
+          this.rentContractStopBillingDateMin$.next(data[1])
+          if(!data[0]){this.rentContractSigningDateMax$.next(data[1])}
+          if(!data[2] && !data[3]){this.rentContractExpirationDateMin$.next(data[1])}
+          if(!data[2]){this.rentContractPremiseReturnDateMin$.next(data[1])}
+          if(data[2]){this.rentContractPremiseReturnDateMin$.next(data[2])}
+        }
+        if(data[2]){
+          this.rentContractRentStartDateMax$.next(data[2])
+          this.rentContractPremiseReturnDateMin$.next(data[2])
+          if(!data[0] && !data[1]){this.rentContractSigningDateMax$.next(data[2])}
+          if(!data[3]){this.rentContractExpirationDateMin$.next(data[1])}
+          if(!data[1]){this.rentContractActOfTransferDateMax$.next(data[2])}
+          if(data[1]){this.rentContractActOfTransferDateMax$.next(data[1])}
+        }
+        if(data[3]){
+          this.rentContractStopBillingDateMax$.next(data[3])
+          this.rentContractExpirationDateMin$.next(data[3])
+          if(!data[0] && !data[1] && !data[2]){this.rentContractSigningDateMax$.next(data[3])}
+          if(!data[2] && !data[1]){this.rentContractActOfTransferDateMax$.next(data[3])}
+          if(!data[2] && data[1]){this.rentContractActOfTransferDateMax$.next(data[1])}
+          if(data[2] && !data[1]){this.rentContractActOfTransferDateMax$.next(data[2])}
+          if(data[2]){this.rentContractRentStartDateMax$.next(data[2])}
+          if(!data[2]){this.rentContractRentStartDateMax$.next(data[3])}
+        }
+      }))
+
   }
 
   periodicalFeeAddSubscription(fee: RentalContractPeriodicalFeeModel){
@@ -816,7 +941,6 @@ export class RentalContractsService {
     this.periodicalFeeMethodSubscriptionArray[i] =
       this.periodicalFeeTabs.controls[i].get('periodical_fee_calculation_method')?.valueChanges.subscribe(
         data =>{
-          console.log(data)
           if (data == 'Per_sqm'){
             this.periodicalFeeMethod.value[i] = 'Per_sqm'
             this.periodicalFeeTabs.controls[i].get('periodical_fee_total_payment')?.setValue('')
@@ -832,7 +956,6 @@ export class RentalContractsService {
     this.periodicalFeeCalculationPeriodSubscriptionArray[i] =
       this.periodicalFeeTabs.controls[i].get('periodical_fee_calculation_period')?.valueChanges.subscribe(
         data =>{
-          console.log(data)
           if (data == 'Month'){
             this.periodicalFeeCalculationPeriod.value[i] = ' в месяц'
           }
@@ -864,10 +987,45 @@ export class RentalContractsService {
       this.oneTimeFeeMethod.value[i] = 'Per_sqm'
     }
 
+    if (fee.one_time_fee_payment_triggering_event == 'Contract_signing_date'){
+      this.oneTimeFeeTriggeringEvent.value[i] = 'Даты договора'
+    }
+    if (fee.one_time_fee_payment_triggering_event == 'Premise_transfer_date'){
+      this.oneTimeFeeTriggeringEvent.value[i] = 'Даты передачи помещения Арендатору'
+    }
+    if (fee.one_time_fee_payment_triggering_event == 'Start_of_commercial_activity'){
+      this.oneTimeFeeTriggeringEvent.value[i] = 'Даты начала коммерческой деятельности'
+    }
+
+    // @ts-ignore
+    this.oneTimeFeeTriggeringEventSubscriptionArray[i] = this.oneTimeFeeTabs.controls[i]
+      .get('one_time_fee_payment_triggering_event')?.valueChanges.subscribe(
+        data=> {
+          if (data == 'Contract_signing_date'){
+            this.oneTimeFeeTriggeringEvent.value[i] = 'Даты договора'
+          }
+          if (data == 'Premise_transfer_date'){
+            this.oneTimeFeeTriggeringEvent.value[i] = 'Даты передачи помещения Арендатору'
+          }
+          if (data == 'Start_of_commercial_activity'){
+            this.oneTimeFeeTriggeringEvent.value[i] = 'Даты начала коммерческой деятельности'
+          }
+          console.log(this.oneTimeFeeTriggeringEvent.value[i])
+        }
+      )
+
+    this.oneTimeFeeTriggeringEventDay.value[i] = this.oneTimeFeeTabs.controls[i]
+      .get('one_time_fee_contract_triggering_event_related_payment_day')?.value
+
+    // @ts-ignore
+    this.oneTimeFeeTriggeringEventDaySubscriptionArray[i] = this.oneTimeFeeTabs.controls[i]
+      .get('one_time_fee_contract_triggering_event_related_payment_day')?.valueChanges.subscribe(
+        data => this.oneTimeFeeTriggeringEventDay.value[i] = data
+      )
+
     // @ts-ignore
     this.oneTimeFeePaymentSubscriptionArray[i] = this.oneTimeFeeTabs.controls[i].get('one_time_fee_payment_term')?.valueChanges.subscribe(
       data=>{
-        console.log(data)
         if (data == 'Fixed_date') {
           this.oneTimeFeePaymentTerm.value[i] = 'Fixed_date'
           this.oneTimeFeeTabs.controls[i].get('one_time_fee_payment_triggering_event')?.setValue('')
@@ -890,7 +1048,6 @@ export class RentalContractsService {
     this.oneTimeFeeMethodSubscriptionArray[i] = this.oneTimeFeeTabs.controls[i]
       .get('one_time_fee_calculation_method')?.valueChanges.subscribe(
         data=>{
-          console.log(data)
           if (data == 'Per_sqm') {
             this.oneTimeFeeMethod.value[i] = 'Per_sqm'
             this.oneTimeFeeTabs.controls[i].get('one_time_fee_total_payment')?.setValue('')
@@ -901,6 +1058,7 @@ export class RentalContractsService {
           }
         }
       )
+
   }
 
 
@@ -1179,7 +1337,6 @@ export class RentalContractsService {
 
     )
     // @ts-ignore
-    console.log(this.periodicalFeeTabs.controls[0].errors)
     console.log('New PeriodicalFee Tab is added')
     return this.periodicalFeeTabs
   }
@@ -1189,6 +1346,7 @@ export class RentalContractsService {
       this.fb.group({
         id: new FormControl(''),
         rent_contract_id: new FormControl(''),
+        rent_contract_additional_agreement_id: new FormControl(''),
         one_time_fee_name: new FormControl(fee_name),
         one_time_fee_calculation_method: new FormControl('Per_sqm'),
         one_time_fee_payment_term: new FormControl('Fixed_date'),
@@ -1196,7 +1354,8 @@ export class RentalContractsService {
         one_time_fee_per_sqm: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
         one_time_fee_total_payment: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
         one_time_fee_contract_payment_date: new FormControl(''),
-        one_time_fee_contract_triggering_event_related_payment_day: new FormControl(''),
+        one_time_fee_contract_triggering_event_related_payment_day:
+          new FormControl('', Validators.pattern("^[0-9]{1,3}")),
         last_updated: new FormControl(''),
         user_updated: new FormControl(''),
       })
@@ -1228,7 +1387,6 @@ export class RentalContractsService {
       })
     )
     // @ts-ignore
-    console.log(this.utilityFeeTabs.controls[0].errors)
     console.log('New Utility Tab is added')
     return this.utilityFeeTabs
   }
@@ -1301,5 +1459,29 @@ export class RentalContractsService {
         )
       }
     }
+  }
+
+  // Validators
+
+  inputRentalContractNumber(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: boolean } | null => {
+      if (
+        control.value !== null && this.rentalContractNumbersArray.value.includes(control.value)
+      ) {
+        return { inputValidator: true };
+      }
+      return null;
+    };
+  }
+
+  inputPremiseNumber(): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: boolean } | null => {
+      if (
+        control.value !== null && this.rentalContractNumbersArray.value.includes(control.value)
+      ) {
+        return { inputValidator: true };
+      }
+      return null;
+    };
   }
 }

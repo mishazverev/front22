@@ -35,24 +35,44 @@
     <mat-form-field appearance="fill">
       <mat-label>Номер договора</mat-label>
       <input matInput formControlName="rent_contract_number" autocomplete="off">
+      <mat-hint align="start">Обязательное поле</mat-hint>
+      <mat-error *ngIf="service.form_contract.controls['rent_contract_number'].hasError('required') ">
+        Номер договора обязателен
+      </mat-error>
+      <mat-error *ngIf="service.form_contract.controls['rent_contract_number'].invalid &&
+      !service.form_contract.controls['rent_contract_number'].hasError('required')">
+        Такой номер договора уже существует
+      </mat-error>
     </mat-form-field>
   </mat-grid-tile>
 
   <mat-grid-tile>
     <mat-form-field appearance="fill">
       <mat-label>Дата начала договора</mat-label>
-      <input matInput [matDatepicker]="picker1" formControlName="rent_contract_signing_date" autocomplete="off">
+      <input matInput
+             [max]="service.rentContractSigningDateMax$.value"
+             [matDatepicker]="$any(picker1)" formControlName="rent_contract_signing_date" autocomplete="off">
       <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
       <mat-datepicker #picker1></mat-datepicker>
+      <mat-hint align="start">Обязательное поле</mat-hint>
+      <mat-error *ngIf="service.form_contract.controls['rent_contract_signing_date'].hasError('required') ">
+        Дата начала договора обязательна
+      </mat-error>
     </mat-form-field>
   </mat-grid-tile>
 
   <mat-grid-tile>
     <mat-form-field appearance="fill">
       <mat-label>Дата окончания договора</mat-label>
-      <input matInput [matDatepicker]="picker2" formControlName="rent_contract_expiration_date" autocomplete="off">
+      <input matInput
+             [min]="service.rentContractExpirationDateMin$.value"
+             [matDatepicker]="$any(picker2)" formControlName="rent_contract_expiration_date" autocomplete="off">
       <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
       <mat-datepicker #picker2></mat-datepicker>
+      <mat-hint align="start">Обязательное поле</mat-hint>
+      <mat-error *ngIf="service.form_contract.controls['rent_contract_expiration_date'].hasError('required') ">
+        Дата начала договора обязательна
+      </mat-error>
     </mat-form-field>
   </mat-grid-tile>
 
@@ -83,7 +103,11 @@
               <mat-label>Итого площадь по договору, кв.м.</mat-label>
               <input matInput placeholder="Итого площадь по договору, кв.м." formControlName="contracted_area">
               <mat-hint align="start">Обязательное поле</mat-hint>
-              <mat-error>Обязательное поле</mat-error>
+              <mat-error *ngIf="service.form_contract.controls['contracted_area'].hasError('required')">
+                Обязательное поле</mat-error>
+              <mat-error *ngIf="service.form_contract.controls['contracted_area'].hasError('pattern')">
+                Введите число с 2 знаками после точки
+              </mat-error>
             </mat-form-field>
           </mat-grid-tile>
 
@@ -124,7 +148,10 @@
       <mat-grid-tile>
         <mat-form-field appearance="fill">
           <mat-label>Дата передачи помещения арендатору</mat-label>
-          <input matInput [matDatepicker]="picker3" formControlName="act_of_transfer_date" autocomplete="off">
+          <input matInput
+                 [min]="service.rentContractActOfTransferDateMin$.value"
+                 [max]="service.rentContractActOfTransferDateMax$.value"
+                 [matDatepicker]="$any(picker3)" formControlName="act_of_transfer_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="picker3"></mat-datepicker-toggle>
           <mat-datepicker #picker3></mat-datepicker>
         </mat-form-field>
@@ -133,7 +160,10 @@
       <mat-grid-tile>
         <mat-form-field appearance="fill">
           <mat-label>Дата начала платежей по договору</mat-label>
-          <input matInput [matDatepicker]="picker4" formControlName="rent_start_date" autocomplete="off">
+          <input matInput
+                 [min]="service.rentContractRentStartDateMin$.value"
+                 [max]="service.rentContractRentStartDateMax$.value"
+                 [matDatepicker]="$any(picker4)" formControlName="rent_start_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="picker4"></mat-datepicker-toggle>
           <mat-datepicker #picker4></mat-datepicker>
         </mat-form-field>
@@ -142,7 +172,10 @@
       <mat-grid-tile>
         <mat-form-field appearance="fill">
           <mat-label>Дата возврата помещения арендодателю</mat-label>
-          <input matInput [matDatepicker]="picker5" formControlName="premise_return_date" autocomplete="off">
+          <input matInput
+                 [min]="service.rentContractPremiseReturnDateMin$.value"
+                 [max]="service.rentContractPremiseReturnDateMax$.value"
+                 [matDatepicker]="$any(picker5)" formControlName="premise_return_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="picker5"></mat-datepicker-toggle>
           <mat-datepicker #picker5></mat-datepicker>
         </mat-form-field>
@@ -151,7 +184,10 @@
       <mat-grid-tile>
         <mat-form-field appearance="fill">
           <mat-label>Дата окончания платежей по договору</mat-label>
-          <input matInput [matDatepicker]="picker6" formControlName="stop_billing_date" autocomplete="off">
+          <input matInput
+                 [min]="service.rentContractStopBillingDateMin$.value"
+                 [max]="service.rentContractStopBillingDateMax$.value"
+                 [matDatepicker]="$any(picker6)" formControlName="stop_billing_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="picker6"></mat-datepicker-toggle>
           <mat-datepicker #picker6></mat-datepicker>
         </mat-form-field>
@@ -205,6 +241,11 @@
          <mat-label>{{service.fixedRentNameSubject.value}}</mat-label>
          <input matInput placeholder={{service.fixedRentNameSubject.value}} formControlName="fixed_rent_per_sqm" autocomplete="off">
          <mat-hint>В рублях за 1 кв. м. помещения {{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
+         <mat-error *ngIf="service.form_contract.controls['fixed_rent_per_sqm'].hasError('required')">
+           Обязательное поле</mat-error>
+         <mat-error *ngIf="service.form_contract.controls['fixed_rent_per_sqm'].hasError('pattern')">
+           Введите число с 2 знаками после точки
+         </mat-error>
        </mat-form-field>
      </mat-grid-tile>
 
@@ -213,6 +254,11 @@
          <mat-label>{{service.fixedRentNameSubject.value}}</mat-label>
          <input matInput placeholder={{service.fixedRentNameSubject.value}} formControlName="fixed_rent_total_payment" autocomplete="off">
          <mat-hint>В рублях за всё помещение {{service.fixedRentCalculationPeriodSubject.value}}</mat-hint>
+         <mat-error *ngIf="service.form_contract.controls['fixed_rent_total_payment'].hasError('required')">
+           Обязательное поле</mat-error>
+         <mat-error *ngIf="service.form_contract.controls['fixed_rent_total_payment'].hasError('pattern')">
+           Введите число с 2 знаками после точки
+         </mat-error>
        </mat-form-field>
      </mat-grid-tile>
 
@@ -221,6 +267,9 @@
          <mat-label>На какой % {{service.fixedRentNameSubject.value}} индексируется ежегодно?</mat-label>
          <input matInput placeholder='На какой % {{service.fixedRentNameSubject.value}} индексируется ежегодно?' formControlName="fixed_rent_indexation_fixed" autocomplete="off">
          <mat-hint>Индекс, на который {{service.fixedRentNameSubject.value}} увеличивается ежегодно</mat-hint>
+         <mat-error *ngIf="service.form_contract.controls['fixed_rent_indexation_fixed'].hasError('pattern')">
+           Введите число с 2 знаками после точки
+         </mat-error>
        </mat-form-field>
      </mat-grid-tile>
 
@@ -229,6 +278,9 @@
          <mat-label>% платы от товарооборота</mat-label>
          <input matInput placeholder='Какой % учитывается при расчете платы от товарооборота?' formControlName="turnover_fee" autocomplete="off">
          <mat-hint>Какой % учитывается при расчете платы от товарооборота?</mat-hint>
+         <mat-error *ngIf="service.form_contract.controls['turnover_fee'].hasError('pattern')">
+           Введите число с 2 знаками после точки
+         </mat-error>
        </mat-form-field>
      </mat-grid-tile>
 
@@ -239,6 +291,9 @@
          <mat-label>% платы от товарооборота</mat-label>
          <input matInput placeholder='Какой % учитывается при расчете платы от товарооборота?' formControlName="turnover_fee" autocomplete="off">
          <mat-hint>Какой % учитывается при расчете платы от товарооборота?</mat-hint>
+         <mat-error *ngIf="service.form_contract.controls['turnover_fee'].hasError('pattern')">
+           Введите число с 2 знаками после точки
+         </mat-error>
        </mat-form-field>
      </mat-grid-tile>
 
@@ -269,6 +324,9 @@
         <mat-form-field appearance="fill">
           <mat-label>Размер депозита</mat-label>
           <input matInput placeholder="Размер депозита" formControlName="guarantee_deposit_amount">
+          <mat-error *ngIf="service.form_contract.controls['guarantee_deposit_amount'].hasError('pattern')">
+            Введите число с 2 знаками после точки
+          </mat-error>
         </mat-form-field>
       </mat-grid-tile>
     </mat-grid-list>
@@ -454,6 +512,15 @@
                     <mat-error>Введите число с 2 знаками после точки</mat-error>
                     <mat-hint>В рублях за всё помещение</mat-hint>
                   </mat-form-field>
+                </mat-grid-tile>
+
+                <mat-grid-tile *ngIf="this.service.oneTimeFeePaymentTerm.value[i] == 'Triggering_event_date'">
+                  <div class="header_tile">
+                    <span>{{service.oneTimeFeeContractArray[i].one_time_fee_name}}
+                      оплачивается не позднее
+                      {{service.oneTimeFeeTriggeringEventDay.value[i]}}-го дня после
+                      {{service.oneTimeFeeTriggeringEvent.value[i]}}</span>
+                  </div>
                 </mat-grid-tile>
 
                 <mat-grid-tile *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">

@@ -5,7 +5,7 @@ import {MatDialog, MatDialogConfig, MatDialogRef} from "@angular/material/dialog
 import {NotificationService} from "../../../shared/notification.service";
 import {GlobalAppService} from "../../../shared/services/global-app.service";
 import {RentalContractsService} from "../../../shared/services/rental-contracts.service";
-import {BehaviorSubject, combineLatest, Observable, Subscription} from "rxjs";
+import {BehaviorSubject, combineLatest, merge, mergeAll, Observable, Subscription} from "rxjs";
 import {tap} from "rxjs/operators";
 import {
   RentalContractModel,
@@ -54,11 +54,8 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   public brandSelectListSubscription$: Subscription = new Subscription;
   public brandSelectSubscription$: Subscription = new Subscription;
   public premiseAreaSummingSubscription$: Subscription = new Subscription;
-  public guaranteeCoveredMonthsValue$: BehaviorSubject<number> = new BehaviorSubject<number>(0)
-  public guaranteeCoveredDaysValue$: BehaviorSubject<number> = new BehaviorSubject<number>(0)
-  public guaranteeDepositCoverage$: Subscription = new Subscription;
   public contractDuration_$: Subscription = new Subscription;
-
+  public rentContractDates$: Subscription = new Subscription()
 
   private selectedPremiseArea: [] = []
 
@@ -121,15 +118,6 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
         }}
       })
 
-    this.contractDuration_$ = combineLatest([
-      this.service.form_contract.controls['rent_contract_signing_date'].valueChanges,
-      this.service.form_contract.controls['rent_contract_expiration_date'].valueChanges,
-    ]).subscribe(value=>{
-      if(value[0] && value[1]){
-      let diff = this.service.dateDiff(value[0], value[1])
-      }
-    })
-
     this.service.guaranteeDepositCoverage$ = combineLatest([
       this.service.form_contract.controls['contracted_area'].valueChanges,
       this.service.form_contract.controls['fixed_rent_per_sqm'].valueChanges,
@@ -138,8 +126,6 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
       this.service.form_contract.controls['guarantee_deposit_amount'].valueChanges,
       this.service.fixedRentCalculationObjectSubject
     ]).subscribe( data=>{
-      console.log(data)
-
       this.service.depositCoverageCalculation(
         data[0],
         data[1],
@@ -158,6 +144,45 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
       this.service.form_contract.controls['guarantee_deposit_amount'].value,
       this.service.fixedRentCalculationObjectSubject.value
     )
+
+// Contract dates
+
+    if (this.service.form_contract.controls['rent_contract_signing_date'].value){
+      this.service.rentContractSigningDate$.next(this.service.form_contract.controls['rent_contract_signing_date'].value)}
+
+    if (this.service.form_contract.controls['rent_contract_expiration_date'].value){
+      this.service.rentContractExpirationDate$.next(this.service.form_contract.controls['rent_contract_expiration_date'].value)}
+
+    if (this.service.form_contract.controls['rent_contract_signing_date'].value && this.service.form_contract.controls['rent_contract_expiration_date'].value){
+      this.service.form_contract.controls['act_of_transfer_date'].enable()
+      this.service.form_contract.controls['rent_start_date'].enable()
+      this.service.form_contract.controls['premise_return_date'].enable()
+      this.service.form_contract.controls['stop_billing_date'].enable()
+    }
+    if (!this.service.form_contract.controls['rent_contract_signing_date'].value || !this.service.form_contract.controls['rent_contract_expiration_date'].value){
+      this.service.form_contract.controls['act_of_transfer_date'].disable()
+      this.service.form_contract.controls['rent_start_date'].disable()
+      this.service.form_contract.controls['premise_return_date'].disable()
+      this.service.form_contract.controls['stop_billing_date'].disable()
+    }
+
+    this.contractDuration_$ = combineLatest([
+      this.service.form_contract.controls['rent_contract_signing_date'].valueChanges,
+      this.service.form_contract.controls['rent_contract_expiration_date'].valueChanges,
+    ]).subscribe(value=>{
+      if(value[0] && value[1]){
+        let diff = this.service.dateDiff(value[0], value[1])
+      }
+    })
+
+    if (this.service.form_contract.controls['guarantee_deposit_type'].value == 'Cash'
+      || this.service.form_contract.controls['guarantee_deposit_type'].value == 'Corporate_guarantee'){
+      this.service.form_contract.controls['guarantee_bank_guarantee_expiration_date'].reset()
+      this.service.form_contract.controls['guarantee_bank_guarantee_expiration_date'].disable()
+    }
+
+
+
   }
 
   areaSumming(area: []){
@@ -191,27 +216,21 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     oneTimeFeeData: RentalContractOneTimeFeeModel[],
     utilityFeeData: RentalContractUtilityFeeModel[])
   {
-    console.log(periodicalFeeData)
-    console.log(oneTimeFeeData)
-    console.log(utilityFeeData)
     for (let fee of periodicalFeeData){
-      console.log(fee)
       fee.rent_contract_id = rentalContractData.id
       fee.last_updated = new Date
-      console.log(fee.id)
       if (!fee.id){
         this.apiService.createRentalContractPeriodicalFee(fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('Periodical fee is created')
         )
       }
       if (fee.id){
         this.apiService.updateRentalContractPeriodicalFee(fee.id, fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('Periodical fee is updated')
         )
       }
     }
     for (let fee of oneTimeFeeData){
-      console.log(fee.id)
       fee.rent_contract_id = rentalContractData.id
       fee.last_updated = new Date
       // @ts-ignore
@@ -219,27 +238,26 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
 
       if (!fee.id){
         this.apiService.createRentalContractOneTimeFee(fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('One time fee is created')
         )
       }
       if (fee.id){
         this.apiService.updateRentalContractOneTimeFee(fee.id, fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('One time fee is updated')
         )
       }
     }
     for (let fee of utilityFeeData){
-      console.log(fee)
       fee.rent_contract_id = rentalContractData.id
       fee.last_updated = new Date
       if (!fee.id){
         this.apiService.createRentalContractUtilityFee(fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('Utility fee is created')
         )
       }
       if (fee.id){
         this.apiService.updateRentalContractUtilityFee(fee.id, fee).subscribe(
-          data => console.log(data)
+          ()=> console.log('Utility fee is updated')
         )
       }
     }
@@ -249,7 +267,7 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   //Contract card submitting
   onSubmit(){
     const rentalContractData: RentalContractModel = this.service.form_contract.value
-
+    this.service.rentalContractNumbersArray.value.push(rentalContractData.rent_contract_number)
     const periodicalFeeData: RentalContractPeriodicalFeeModel[] = this.service.periodicalFeeTabs.getRawValue()
     const oneTimeFeeData: RentalContractOneTimeFeeModel[] = this.service.oneTimeFeeTabs.getRawValue()
     const utilityFeeData: RentalContractUtilityFeeModel[] = this.service.utilityFeeTabs.getRawValue()
@@ -287,7 +305,6 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
       .pipe(
         tap(
           () => {
-            console.log(periodicalFeeData)
             this.submitFees(
               rentalContractData,
               periodicalFeeData,
@@ -297,7 +314,6 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
         )
       )
       .subscribe(data => {
-        console.log(data)
         // @ts-ignore
         this.service.updateTableRow(data, this.service.selectedPremise, this.service.selectedTenant, this.service.selectedBrand)
         this.service.form_contract.reset();
@@ -324,64 +340,6 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   }
 
   contractSetupOpen(){
-
-
-    //   this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value).subscribe({
-    //       next: data => {
-    //         // @ts-ignore
-    //         console.log(data.length)
-    //         // @ts-ignore
-    //         if (data.length > 0) {
-    //           this.globalService.contractSetupExists$.next(true)
-    //           console.log('rental contract setup exists')
-    //         }
-    //         // @ts-ignore
-    //         if (data.length == 0) {
-    //           this.globalService.contractSetupExists$.next(false)
-    //           console.log('rental contract setup does not exist')
-    //         }
-    //       },
-    //       error: () => {
-    //         this.globalService.contractSetupExists$.next(false)
-    //         console.log('rental contract setup does not exist')
-    //       }
-    //     }
-    //   )
-    //   this.setupService.feeIsLoaded$.next(false)
-    //   this.setupService.resetContractSetupCard()
-    //   this.globalService.editCardTrigger$.next(true)
-    //   if (this.globalService.contractSetupExists$.value)
-    //   { console.log('Populate')
-    //     this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value)
-    //       .pipe(
-    //         tap (data => {
-    //           console.log(data)
-    //           this.setupService.contractSetup = data}),
-    //         map (data => data[0].id),
-    //         concatMap( data => {
-    //             const getPeriodicalFeeSetup$ = this.apiService.getRentalContractPeriodicalFeeSetupByRentalContractSetup(data)
-    //             const getOneTimeFeeSetup$ = this.apiService.getRentalContractOneTimeFeeSetupByRentalContractSetup(data)
-    //             const getUtilityFeeSetup$ = this.apiService.getRentalContractUtilityFeeSetupByRentalContractSetup(data)
-    //             return forkJoin([getPeriodicalFeeSetup$, getOneTimeFeeSetup$, getUtilityFeeSetup$])
-    //           }
-    //         )
-    //       )
-    //       .subscribe(
-    //         data =>{
-    //           console.log(data)
-    //           this.setupService.periodicalFeeArray = data[0]
-    //           this.setupService.oneTimeFeeArray = data[1]
-    //           this.setupService.utilityFeeArray = data[2]
-    //           this.setupService.populateRentalContractSetupCard(this.setupService.contractSetup[0])
-    //           this.setupService.feeIsLoaded$.next(true)
-    //         }
-    //       )
-    //   } if (!this.globalService.contractSetupExists$.value)
-    //   { console.log('Initialize')
-    //     this.setupService.initializeRentalContractSetupCard()
-    //   }
-
-    // }
     const dialogConfig = new MatDialogConfig()
     dialogConfig.disableClose = false
     dialogConfig.autoFocus = true

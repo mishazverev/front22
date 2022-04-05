@@ -245,7 +245,7 @@ export class ApiService {
 
   // RentalContracts
   getRentalContracts() {
-    return this.httpClient.get<RentalContractModelExpanded>(this.baseRentalContractUrl, {headers: this.headers})
+    return this.httpClient.get<RentalContractModelExpanded[]>(this.baseRentalContractUrl, {headers: this.headers})
   }
 
   getRentalContract(id: number) {

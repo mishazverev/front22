@@ -169,8 +169,9 @@ export interface RentalContractModel{
 
   act_of_transfer_date: Date
   rent_start_date: Date
-  premise_return_date: Date
   stop_billing_date: Date
+  premise_return_date: Date
+
 
   fixed_rent_name: string
   fixed_rent_calculation_period: string

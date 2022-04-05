@@ -39,7 +39,7 @@ export class RentalContractsListComponent implements OnInit {
 
   rentalContractsTable: RentalContractModel[] = [];
   rentalContractsTableExpanded: RentalContractModelExpanded[] = [];
-  displayedColumns: string[] = ['tenant_contractor_company_name', 'premise_number', 'brand_name', 'actions'];
+  displayedColumns: string[] = ['rent_contract_number','tenant_contractor_company_name', 'premise_number', 'brand_name', 'actions'];
   // @ts-ignore
   tableData: MatTableDataSource<any>
   searchKey: String = ''
@@ -54,11 +54,16 @@ export class RentalContractsListComponent implements OnInit {
     this.globalService.contractSetupExists$.next(true)
 
     this.apiService.getRentalContracts().subscribe(
-      (data: RentalContractModelExpanded) => {
+      (data: RentalContractModelExpanded[]) => {
         // @ts-ignore
         this.rentalContractsTableExpanded = data;
+        this.service.rentalContractNumbersArray.next([])
+        this.service.premiseUsedArray.next([])
+
         for (let row of this.rentalContractsTableExpanded)
           {
+            console.log(row.rent_contract_number)
+            this.service.rentalContractNumbersArray.value.push(row.rent_contract_number)
             row.tenant_contractor_company_name = '';
             row.premise_number = [''];
             row.brand_name = '';
@@ -67,6 +72,7 @@ export class RentalContractsListComponent implements OnInit {
               this.apiService.getPremise(premise_id).subscribe(
                 data => {
                   row.premise_number.push(data.number)
+                  this.service.premiseUsedArray.value.push(data)
                   }
               )
             }
@@ -81,6 +87,7 @@ export class RentalContractsListComponent implements OnInit {
               data=> row.brand_name = data.brand_name
             )}
           }
+        console.log(this.service.rentalContractNumbersArray.value)
         this.tableData = new MatTableDataSource(this.rentalContractsTableExpanded)
         this.tableData.sort = this.sort
         this.tableData.paginator = this.paginator},
@@ -104,8 +111,6 @@ export class RentalContractsListComponent implements OnInit {
   contractSetupAlt(){
     this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value).subscribe({
         next: data => {
-          // @ts-ignore
-          console.log(data.length)
           // @ts-ignore
           if (data.length > 0) {
             this.globalService.contractSetupExists$.next(true)
@@ -131,7 +136,6 @@ export class RentalContractsListComponent implements OnInit {
       this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value)
         .pipe(
           tap (data => {
-            console.log(data)
             this.setupService.contractSetup = data}),
           map (data => data[0].id),
           concatMap( data => {
@@ -144,7 +148,6 @@ export class RentalContractsListComponent implements OnInit {
         )
         .subscribe(
           data =>{
-            console.log(data)
             this.setupService.periodicalFeeArray = data[0]
             this.setupService.oneTimeFeeArray = data[1]
             this.setupService.utilityFeeArray = data[2]
@@ -169,7 +172,6 @@ export class RentalContractsListComponent implements OnInit {
   onCreate() {
     this.service.resetContractCard()
     this.service.rentContractIsLoaded$.next(false)
-    console.log(this.service.rentContractIsLoaded$.value)
     this.service.periodicalFeeSetupArray = []
     this.service.oneTimeFeeSetupArray = []
     this.service.utilityFeeSetupArray = []
@@ -198,7 +200,6 @@ export class RentalContractsListComponent implements OnInit {
     )
     retrieveTenantsPremises.pipe(
       tap (data => {
-        console.log(data)
         // @ts-ignore
         this.service.tenantContractors = data[0]
         // @ts-ignore
@@ -224,7 +225,6 @@ export class RentalContractsListComponent implements OnInit {
     this.service.contract = contract
     this.service.resetContractCard()
     this.service.rentContractIsLoaded$.next(false)
-    console.log(this.service.rentContractIsLoaded$.value)
     this.service.periodicalFeeSetupArray = []
     this.service.oneTimeFeeSetupArray = []
     this.service.utilityFeeSetupArray = []
@@ -254,7 +254,6 @@ export class RentalContractsListComponent implements OnInit {
     )
     retrieveTenantsPremises.pipe(
       tap (data => {
-        console.log(data)
         this.service.tenantContractors = data[0]
         this.service.premises = data[1]
         this.service.brands = data[2]
@@ -364,14 +363,10 @@ export class RentalContractsListComponent implements OnInit {
     let contracts: RentalContractSetupModel[]
     this.apiService.getRentalContractSetups().subscribe(
        data => {
-         console.log(data)
          // @ts-ignore
          contracts = data
          for (let contract of contracts){
-           console.log(contract.id)
-           this.apiService.deleteRentalContractSetup(contract.id).subscribe(
-             data => console.log(data)
-           )
+           this.apiService.deleteRentalContractSetup(contract.id)
          }
        }
      )
