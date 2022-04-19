@@ -1,18 +1,26 @@
 
 <div class="search-div">
-  <button mat-raised-button (click)="onCreate()
+  <button mat-raised-button
+          [disabled] = "service.buttonsActivateTrigger$.value == false"
+          (click)="onCreate()
 
 "><mat-icon>add</mat-icon> Добавить договор</button>
   <mat-form-field class="search-form-field">
     <mat-label>Найти...</mat-label>
     <input matInput type="text" [(ngModel)]="searchKey" autocomplete="on"  (keyup)="applyFilter()">
-    <button *ngIf="searchKey" matSuffix mat-icon-button aria-label="Clear" (click)="searchKey=''">
+    <button
+      [disabled] = "service.buttonsActivateTrigger$.value == false"
+      *ngIf="searchKey" matSuffix mat-icon-button aria-label="Clear" (click)="searchKey=''">
       <mat-icon>close</mat-icon>
     </button>
   </mat-form-field>
-  <button mat-raised-button (click)="contractSetupAlt()
+  <button mat-raised-button
+          [disabled] = "service.buttonsActivateTrigger$.value == false"
+          (click)="contractSetupAlt()
 "><mat-icon>settings</mat-icon> Настройки договора</button>
-  <button mat-raised-button (click)="clearContractSetup()
+  <button mat-raised-button
+          [disabled] = "service.buttonsActivateTrigger$.value == false"
+          (click)="clearContractSetup()
 "><mat-icon>delete</mat-icon></button>
 </div>
 <div class="mat-elevation-z8">

@@ -47,12 +47,19 @@
   </mat-grid-tile>
 
   <mat-grid-tile>
-    <mat-form-field appearance="fill">
+    <mat-form-field
+      appearance="fill"
+      (click)="picker1.open()">
       <mat-label>Дата начала договора</mat-label>
       <input matInput
+             [readonly]=true
+             [matDatepickerFilter]="service.dateFilter"
+             [min]="service.rentContractSigningDateMin$.value"
              [max]="service.rentContractSigningDateMax$.value"
-             [matDatepicker]="$any(picker1)" formControlName="rent_contract_signing_date" autocomplete="off">
-      <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+             [matDatepicker]="$any(picker1)"
+             formControlName="rent_contract_signing_date"
+             autocomplete="off">
+      <mat-datepicker-toggle matSuffix [for]="picker1" [disabled] = false></mat-datepicker-toggle>
       <mat-datepicker #picker1></mat-datepicker>
       <mat-hint align="start">Обязательное поле</mat-hint>
       <mat-error *ngIf="service.form_contract.controls['rent_contract_signing_date'].hasError('required') ">
@@ -62,10 +69,15 @@
   </mat-grid-tile>
 
   <mat-grid-tile>
-    <mat-form-field appearance="fill">
+    <mat-form-field
+      appearance="fill"
+      (click)="picker2.open()">
       <mat-label>Дата окончания договора</mat-label>
       <input matInput
+             [readonly]=true
+             [matDatepickerFilter]="service.dateFilter"
              [min]="service.rentContractExpirationDateMin$.value"
+             [max]="service.rentContractExpirationDateMax$.value"
              [matDatepicker]="$any(picker2)" formControlName="rent_contract_expiration_date" autocomplete="off">
       <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
       <mat-datepicker #picker2></mat-datepicker>
@@ -146,9 +158,11 @@
     <mat-grid-list cols="2" rowHeight="80px">
 
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="picker3.open()">
           <mat-label>Дата передачи помещения арендатору</mat-label>
           <input matInput
+                 [readonly]=true
                  [min]="service.rentContractActOfTransferDateMin$.value"
                  [max]="service.rentContractActOfTransferDateMax$.value"
                  [matDatepicker]="$any(picker3)" formControlName="act_of_transfer_date" autocomplete="off">
@@ -158,9 +172,11 @@
       </mat-grid-tile>
 
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="picker4.open()">
           <mat-label>Дата начала платежей по договору</mat-label>
           <input matInput
+                 [readonly]=true
                  [min]="service.rentContractRentStartDateMin$.value"
                  [max]="service.rentContractRentStartDateMax$.value"
                  [matDatepicker]="$any(picker4)" formControlName="rent_start_date" autocomplete="off">
@@ -170,9 +186,11 @@
       </mat-grid-tile>
 
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="picker5.open()">
           <mat-label>Дата возврата помещения арендодателю</mat-label>
           <input matInput
+                 [readonly]=true
                  [min]="service.rentContractPremiseReturnDateMin$.value"
                  [max]="service.rentContractPremiseReturnDateMax$.value"
                  [matDatepicker]="$any(picker5)" formControlName="premise_return_date" autocomplete="off">
@@ -182,9 +200,11 @@
       </mat-grid-tile>
 
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="picker6.open()">
           <mat-label>Дата окончания платежей по договору</mat-label>
           <input matInput
+                 [readonly]=true
                  [min]="service.rentContractStopBillingDateMin$.value"
                  [max]="service.rentContractStopBillingDateMax$.value"
                  [matDatepicker]="$any(picker6)" formControlName="stop_billing_date" autocomplete="off">
@@ -333,18 +353,25 @@
 
     <mat-grid-list cols="2" rowHeight="75px">
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="pickerGuaranteeProvidingDate.open()">
           <mat-label>Дата предоставления депозита</mat-label>
-          <input matInput [matDatepicker]="pickerGuaranteeProvidingDate" formControlName="guarantee_deposit_contract_providing_date" autocomplete="off">
+          <input matInput
+                 [readonly]=true
+                 [matDatepicker]="pickerGuaranteeProvidingDate" formControlName="guarantee_deposit_contract_providing_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerGuaranteeProvidingDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerGuaranteeProvidingDate></mat-datepicker>
         </mat-form-field>
       </mat-grid-tile>
 
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="pickerGuaranteeExpirationDate.open()">
           <mat-label>Дата истечения банковской гарантии</mat-label>
-          <input matInput [matDatepicker]="pickerGuaranteeExpirationDate" formControlName="guarantee_bank_guarantee_expiration_date" autocomplete="off">
+          <input matInput
+                 [readonly]=true
+                 [matDatepicker]="pickerGuaranteeExpirationDate"
+                 formControlName="guarantee_bank_guarantee_expiration_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerGuaranteeExpirationDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerGuaranteeExpirationDate></mat-datepicker>
         </mat-form-field>
@@ -365,18 +392,26 @@
     <mat-grid-list cols="2" rowHeight="75px">
 
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="pickerInsuranceProvidingDate.open()">
           <mat-label>Дата предоставления полиса</mat-label>
-          <input matInput [matDatepicker]="pickerInsuranceProvidingDate" formControlName="insurance_contract_providing_date" autocomplete="off">
+          <input matInput
+                 [readonly]=true
+                 [matDatepicker]="pickerInsuranceProvidingDate"
+                 formControlName="insurance_contract_providing_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerInsuranceProvidingDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerInsuranceProvidingDate></mat-datepicker>
         </mat-form-field>
       </mat-grid-tile>
 
       <mat-grid-tile>
-        <mat-form-field appearance="fill">
+        <mat-form-field appearance="fill"
+                        (click)="pickerInsuranceExpirationDate.open()">
           <mat-label>Дата истечения полиса</mat-label>
-          <input matInput [matDatepicker]="pickerInsuranceExpirationDate" formControlName="insurance_expiration_date" autocomplete="off">
+          <input matInput
+                 [readonly]=true
+                 [matDatepicker]="pickerInsuranceExpirationDate"
+                 formControlName="insurance_expiration_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerInsuranceExpirationDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerInsuranceExpirationDate></mat-datepicker>
         </mat-form-field>

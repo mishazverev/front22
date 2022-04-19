@@ -60,6 +60,9 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   private selectedPremiseArea: [] = []
 
   ngOnInit(): void {
+    // @ts-ignore
+    this.service.rentContractSigningDateMin$.next(this.datepipe.transform(this.service.rentContractSigningDateMin$.value), 'YYYY-MM-dd')
+    console.log(this.service.rentContractSigningDateMin$.value)
 
     this.globalService.editCardTrigger$.subscribe( data => {
         if (data == false){
@@ -358,6 +361,10 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.brandSelectListSubscription$.unsubscribe()
     this.premiseAreaSummingSubscription$.unsubscribe()
+    this.service.rentContractPremiseSubscription$.unsubscribe()
+    this.service.rentContractDateSubscription$.unsubscribe()
+    this.service.rentContractDateSubscription_2$.unsubscribe()
+    this.service.guaranteeDepositTypeSubscription$.unsubscribe()
 
 
     console.log('Rental contracts form is closed')

@@ -454,3 +454,8 @@ export interface Counter {
   last_updated: Date
   user_updated: string
 }
+
+export interface DatesInterval {
+  startDate: Date
+  expirationDate: Date
+}
