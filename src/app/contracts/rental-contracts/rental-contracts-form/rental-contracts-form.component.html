@@ -54,7 +54,6 @@
       <input matInput
              [readonly]=true
              [matDatepickerFilter]="service.dateFilter"
-             [min]="service.rentContractSigningDateMin$.value"
              [max]="service.rentContractSigningDateMax$.value"
              [matDatepicker]="$any(picker1)"
              formControlName="rent_contract_signing_date"
@@ -62,8 +61,12 @@
       <mat-datepicker-toggle matSuffix [for]="picker1" [disabled] = false></mat-datepicker-toggle>
       <mat-datepicker #picker1></mat-datepicker>
       <mat-hint align="start">Обязательное поле</mat-hint>
-      <mat-error *ngIf="service.form_contract.controls['rent_contract_signing_date'].hasError('required') ">
+      <mat-error *ngIf="service.form_contract.controls['rent_contract_signing_date'].hasError('required')">
         Дата начала договора обязательна
+      </mat-error>
+      <mat-error *ngIf="service.form_contract.controls['rent_contract_signing_date'].invalid &&
+      !service.form_contract.controls['rent_contract_signing_date'].hasError('required')">
+        Дата не в интервале
       </mat-error>
     </mat-form-field>
   </mat-grid-tile>
@@ -77,7 +80,6 @@
              [readonly]=true
              [matDatepickerFilter]="service.dateFilter"
              [min]="service.rentContractExpirationDateMin$.value"
-             [max]="service.rentContractExpirationDateMax$.value"
              [matDatepicker]="$any(picker2)" formControlName="rent_contract_expiration_date" autocomplete="off">
       <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
       <mat-datepicker #picker2></mat-datepicker>
@@ -318,7 +320,7 @@
      </mat-grid-tile>
 
    </mat-grid-list>
-  <ng-container rowHeight="40px" *ngIf="service.guaranteeDepositIsRequired$.value == true">
+  <ng-container *ngIf="service.guaranteeDepositIsRequired$.value == true">
     <mat-grid-list cols="3" rowHeight="30px">
       <mat-grid-tile colspan="2">
         <div class="header_tile">
@@ -358,7 +360,9 @@
           <mat-label>Дата предоставления депозита</mat-label>
           <input matInput
                  [readonly]=true
-                 [matDatepicker]="pickerGuaranteeProvidingDate" formControlName="guarantee_deposit_contract_providing_date" autocomplete="off">
+                 [min]="service.guaranteeDepositProvidingDateMin$.value"
+                 [max]="service.guaranteeDepositProvidingDateMax$.value"
+                 [matDatepicker]="$any(pickerGuaranteeProvidingDate)" formControlName="guarantee_deposit_contract_providing_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerGuaranteeProvidingDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerGuaranteeProvidingDate></mat-datepicker>
         </mat-form-field>
@@ -370,7 +374,8 @@
           <mat-label>Дата истечения банковской гарантии</mat-label>
           <input matInput
                  [readonly]=true
-                 [matDatepicker]="pickerGuaranteeExpirationDate"
+                 [min]="service.guaranteeBankGuaranteeExpirationDateMin$.value"
+                 [matDatepicker]="$any(pickerGuaranteeExpirationDate)"
                  formControlName="guarantee_bank_guarantee_expiration_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerGuaranteeExpirationDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerGuaranteeExpirationDate></mat-datepicker>
@@ -397,7 +402,9 @@
           <mat-label>Дата предоставления полиса</mat-label>
           <input matInput
                  [readonly]=true
-                 [matDatepicker]="pickerInsuranceProvidingDate"
+                 [min]="service.insuranceProvidingDateDateMin$.value"
+                 [max]="service.insuranceProvidingDateDateMax$.value"
+                 [matDatepicker]="$any(pickerInsuranceProvidingDate)"
                  formControlName="insurance_contract_providing_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerInsuranceProvidingDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerInsuranceProvidingDate></mat-datepicker>
@@ -410,7 +417,8 @@
           <mat-label>Дата истечения полиса</mat-label>
           <input matInput
                  [readonly]=true
-                 [matDatepicker]="pickerInsuranceExpirationDate"
+                 [min]="service.insuranceExpirationDateMin$.value"
+                 [matDatepicker]="$any(pickerInsuranceExpirationDate)"
                  formControlName="insurance_expiration_date" autocomplete="off">
           <mat-datepicker-toggle matSuffix [for]="pickerInsuranceExpirationDate"></mat-datepicker-toggle>
           <mat-datepicker #pickerInsuranceExpirationDate></mat-datepicker>
@@ -456,7 +464,7 @@
     </mat-grid-list>
   </mat-step>
 
-  <mat-step *ngIf="service.periodicalFeeContractArray.length > 0 || service.oneTimeFeeContractArray.length > 0">
+  <mat-step *ngIf="service.periodicalFeeContractArray.value.length > 0 || service.oneTimeFeeContractArray.value.length > 0">
       <ng-template matStepLabel>{{this.service.periodicalFeeNameSubject.value}}{{this.service.oneTimeFeeNameSubject.value}}сборы</ng-template>
       <p></p>
     <div [formGroup]="service.periodicalFeeTabsForm">
@@ -466,7 +474,7 @@
             *ngFor="let fee of service.periodicalFeeTabs.controls; index as i"
           >
             <ng-template mat-tab-label>
-              <span class="tab_label_span1">{{service.periodicalFeeContractArray[i].periodical_fee_name}}</span>
+              <span class="tab_label_span1">{{service.periodicalFeeContractArray.value[i].periodical_fee_name}}</span>
             </ng-template>
             <ng-container [formGroupName]="i">
               <input type="hidden" formControlName="id">
@@ -476,7 +484,7 @@
 
                 <mat-grid-tile *ngIf="service.periodicalFeeMethod.value[i] == 'Per_sqm'">
                   <mat-form-field appearance="fill">
-                    <mat-label>{{service.periodicalFeeContractArray[i].periodical_fee_name}} - за 1 кв.м. {{service.periodicalFeeCalculationPeriod.value[i]}}</mat-label>
+                    <mat-label>{{service.periodicalFeeContractArray.value[i].periodical_fee_name}} - за 1 кв.м. {{service.periodicalFeeCalculationPeriod.value[i]}}</mat-label>
                     <input matInput formControlName="periodical_fee_per_sqm" autocomplete="off">
                     <mat-error>Введите число с 2 знаками после точки</mat-error>
                     <mat-hint>В рублях за 1 кв. м. помещения{{service.periodicalFeeCalculationPeriod.value[i]}}</mat-hint>
@@ -485,7 +493,7 @@
 
                 <mat-grid-tile *ngIf="service.periodicalFeeMethod.value[i] == 'Total'">
                   <mat-form-field appearance="fill">
-                    <mat-label>{{service.periodicalFeeContractArray[i].periodical_fee_name}} - за всё помещение {{service.periodicalFeeCalculationPeriod.value[i]}}</mat-label>
+                    <mat-label>{{service.periodicalFeeContractArray.value[i].periodical_fee_name}} - за всё помещение {{service.periodicalFeeCalculationPeriod.value[i]}}</mat-label>
                     <input matInput formControlName="periodical_fee_total_payment" autocomplete="off">
                     <mat-error>Введите число с 2 знаками после точки</mat-error>
                     <mat-hint>В рублях за всё помещение{{service.periodicalFeeCalculationPeriod.value[i]}}</mat-hint>
@@ -497,7 +505,7 @@
                     <mat-label>Значение % индексации</mat-label>
                     <input matInput formControlName="periodical_payment_indexation_fixed" autocomplete="off">
                     <mat-error>Введите число с 2 знаками после точки</mat-error>
-                    <mat-hint align="start">{{service.periodicalFeeContractArray[i].periodical_fee_name}} увеличивется ежегодно на этот %</mat-hint>
+                    <mat-hint align="start">{{service.periodicalFeeContractArray.value[i].periodical_fee_name}} увеличивется ежегодно на этот %</mat-hint>
                   </mat-form-field>
                 </mat-grid-tile>
 
@@ -523,7 +531,7 @@
             *ngFor="let fee of service.oneTimeFeeTabs.controls; index as i"
           >
             <ng-template mat-tab-label>
-              <span class="tab_label_span1">{{service.oneTimeFeeContractArray[i].one_time_fee_name}}</span>
+              <span class="tab_label_span1">{{service.oneTimeFeeContractArray.value[i].one_time_fee_name}}</span>
             </ng-template>
             <ng-container [formGroupName]="i">
               <input type="hidden" formControlName="id">
@@ -533,7 +541,7 @@
 
                 <mat-grid-tile *ngIf="service.oneTimeFeeMethod.value[i] == 'Per_sqm'">
                   <mat-form-field appearance="fill">
-                    <mat-label>{{service.oneTimeFeeContractArray[i].one_time_fee_name}} - за 1 кв.м. помещения</mat-label>
+                    <mat-label>{{service.oneTimeFeeContractArray.value[i].one_time_fee_name}} - за 1 кв.м. помещения</mat-label>
                     <input matInput formControlName="one_time_fee_per_sqm" autocomplete="off">
                     <mat-error>Введите число с 2 знаками после точки</mat-error>
                     <mat-hint>В рублях за 1 кв. м. помещения</mat-hint>
@@ -542,7 +550,7 @@
 
                 <mat-grid-tile *ngIf="service.oneTimeFeeMethod.value[i] == 'Total'">
                   <mat-form-field appearance="fill">
-                    <mat-label>{{service.oneTimeFeeContractArray[i].one_time_fee_name}} - общая сумма платежа</mat-label>
+                    <mat-label>{{service.oneTimeFeeContractArray.value[i].one_time_fee_name}} - общая сумма платежа</mat-label>
                     <input matInput formControlName="one_time_fee_total_payment" autocomplete="off">
                     <mat-error>Введите число с 2 знаками после точки</mat-error>
                     <mat-hint>В рублях за всё помещение</mat-hint>
@@ -551,7 +559,7 @@
 
                 <mat-grid-tile *ngIf="this.service.oneTimeFeePaymentTerm.value[i] == 'Triggering_event_date'">
                   <div class="header_tile">
-                    <span>{{service.oneTimeFeeContractArray[i].one_time_fee_name}}
+                    <span>{{service.oneTimeFeeContractArray.value[i].one_time_fee_name}}
                       оплачивается не позднее
                       {{service.oneTimeFeeTriggeringEventDay.value[i]}}-го дня после
                       {{service.oneTimeFeeTriggeringEvent.value[i]}}</span>
@@ -560,9 +568,9 @@
 
                 <mat-grid-tile *ngIf="service.oneTimeFeePaymentTerm.value[i] == 'Fixed_date'">
                   <mat-form-field appearance="fill">
-                    <mat-label>Дата оплаты {{service.oneTimeFeeContractArray[i].one_time_fee_name}} по договору</mat-label>
+                    <mat-label>Дата оплаты {{service.oneTimeFeeContractArray.value[i].one_time_fee_name}} по договору</mat-label>
                     <input matInput [matDatepicker]="pickerOneTimeFeePaymentDate" formControlName="one_time_fee_contract_payment_date" autocomplete="off">
-<!--                    <mat-hint align="start">Дата оплаты {{service.oneTimeFeeContractArray[i].one_time_fee_name}} по договору</mat-hint>-->
+<!--                    <mat-hint align="start">Дата оплаты {{service.oneTimeFeeContractArray.value[i].one_time_fee_name}} по договору</mat-hint>-->
                     <mat-datepicker-toggle matSuffix [for]="pickerOneTimeFeePaymentDate"></mat-datepicker-toggle>
                     <mat-datepicker #pickerOneTimeFeePaymentDate></mat-datepicker>
                   </mat-form-field>

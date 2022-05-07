@@ -1,7 +1,6 @@
 import {Component,OnInit,ViewChild} from '@angular/core';
 import {
   RentalContractModel,
-  TenantModel,
   RentalContractModelExpanded,
   RentalContractSetupModel
 } from "../../../models/models";
@@ -9,17 +8,16 @@ import {ApiService} from "../../../shared/services/api.service";
 import {MatTableDataSource} from "@angular/material/table";
 import {MatSort} from "@angular/material/sort";
 import {MatPaginator} from "@angular/material/paginator";
-import {MatDialog, MatDialogConfig, MatDialogRef} from "@angular/material/dialog";
+import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {NotificationService} from "../../../shared/notification.service";
 import {RentalContractsFormComponent} from "../rental-contracts-form/rental-contracts-form.component";
 import {RentalContractsService} from "../../../shared/services/rental-contracts.service";
 import {RentalContractSetupService} from "../../../shared/services/rental-contract-setup.service";
 
-import {catchError, combineLatest, concatMap, map, tap} from "rxjs/operators";
-import {BehaviorSubject, concat, forkJoin, Observable, of, Subscription, zip} from "rxjs";
+import {concatMap, map, tap} from "rxjs/operators";
+import {BehaviorSubject, forkJoin, Subscription, zip} from "rxjs";
 import {RentalContractsSetupComponent} from "../rental-contracts-setup/rental-contracts-setup.component";
 import {GlobalAppService} from "../../../shared/services/global-app.service";
-import {dashCaseToCamelCase} from "@angular/compiler/src/util";
 
 
 @Component({
@@ -38,10 +36,10 @@ export class RentalContractsListComponent implements OnInit {
     private notificationService: NotificationService,
   ) {}
 
+  numberOfContracts = -1
   numberOfPremisesLoaded$ = new BehaviorSubject<number>(0)
   numberOfCompanyNamesLoaded$ = new BehaviorSubject<number>(0)
   numberOfBrandsLoaded$ = new BehaviorSubject<number>(0)
-  numberOfContracts = -1
   buttonsActivateSubscription$ = new Subscription()
 
   rentalContractsTable: RentalContractModel[] = [];
@@ -56,35 +54,46 @@ export class RentalContractsListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   ngOnInit(): void {
+    // disable buttons
+    this.service.rentContractListButtonsActivateTrigger$.next(false)
 
-    this.globalService.contractSetupExists$.next(true)
-    this.service.buttonsActivateTrigger$.next(false)
-    console.log(this.service.buttonsActivateTrigger$.value)
+    // populate global building setup
+    this.globalService.buildingSetup[this.globalService.buildingId$.value] = {
+      building_id: this.globalService.buildingId$.value,
+      rental_contract_setup_exist: false
+    }
 
+    // check if Rent contract setup exists
+    this.apiService.getRentalContractSetupByBuilding(1).subscribe(data=> {
+      if (data){
+        this.globalService.contractSetupExists$.next(true)
+      }
+    })
+
+    // load Rent contracts to fill the list
     this.apiService.getRentalContracts().subscribe(
       (data: RentalContractModelExpanded[]) => {
-        // @ts-ignore
         this.service.rentalContractsTableExpanded = data;
         this.numberOfContracts = this.service.rentalContractsTableExpanded.length
         this.service.rentalContractNumbersArray.next([])
         this.service.premiseUsedArray.next([])
         for (let row of this.service.rentalContractsTableExpanded)
           {
-            this.service.rentalContractNumbersArray.value.push(row.rent_contract_number)
             row.tenant_contractor_company_name = '';
-            row.premise_number = [''];
+            row.premise_number = [];
             row.brand_name = '';
-            row.premise_number.splice(0,1)
-            for (let premise_id of row.premise_id){
-              this.apiService.getPremise(premise_id).subscribe(
-                data => {
-                  row.premise_number.push(data.number)
-                  this.service.premiseUsedArray.value.push(data)
-                  if (row.premise_id.length == row.premise_number.length){
-                    this.numberOfPremisesLoaded$.next(this.numberOfPremisesLoaded$.value + 1)
+            if(row.premise_id.length > 0){
+              for (let premise_id of row.premise_id){
+                this.apiService.getPremise(premise_id).subscribe(
+                  data => {
+                    row.premise_number.push(data.number)
+                    this.service.premiseUsedArray.value.push(data)
+                    if (row.premise_id.length == row.premise_number.length){
+                      this.numberOfPremisesLoaded$.next(this.numberOfPremisesLoaded$.value + 1)
+                    }
                   }
-                  }
-              )
+                )
+              }
             }
             if (row.tenant_contractor_id){
             this.apiService.getTenant(row.tenant_contractor_id).subscribe(
@@ -101,20 +110,12 @@ export class RentalContractsListComponent implements OnInit {
               }
             )}
           }
-        console.log(this.service.rentalContractsTableExpanded.length)
-        console.log(this.service.rentalContractNumbersArray.value)
         this.tableData = new MatTableDataSource(this.service.rentalContractsTableExpanded)
         this.tableData.sort = this.sort
         this.tableData.paginator = this.paginator}
       )
-
     this.newRow()
     this.updateRow()
-
-    this.globalService.buildingSetup[this.globalService.buildingId$.value] = {
-      building_id: this.globalService.buildingId$.value,
-      rental_contract_setup_exist: false
-    }
 
     this.buttonsActivateSubscription$ =
       zip([
@@ -125,92 +126,21 @@ export class RentalContractsListComponent implements OnInit {
             && data[1] == this.numberOfContracts
             && data[2] == this.numberOfContracts
           ){
-            this.service.buttonsActivateTrigger$.next(true)
-            console.log(data)
-            console.log(this.service.buttonsActivateTrigger$.value)
+            this.service.rentContractListButtonsActivateTrigger$.next(true)
+            console.log('Rental contracts list loading completed')
           }
-        })
-  }
-
+        })}
 
   applyFilter() {
     this.tableData.filter = this.searchKey.trim().toLowerCase()
   }
 
-  contractSetupAlt(){
-    this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value).subscribe({
-        next: data => {
-          // @ts-ignore
-          if (data.length > 0) {
-            this.globalService.contractSetupExists$.next(true)
-            console.log('rental contract setup exists')
-          }
-          // @ts-ignore
-          if (data.length == 0) {
-            this.globalService.contractSetupExists$.next(false)
-            console.log('rental contract setup does not exist')
-          }
-        },
-        error: () => {
-          this.globalService.contractSetupExists$.next(false)
-          console.log('rental contract setup does not exist')
-        }
-      }
-    )
-    this.setupService.feeIsLoaded$.next(false)
-    this.setupService.resetContractSetupCard()
-    this.globalService.editCardTrigger$.next(true)
-    if (this.globalService.contractSetupExists$.value)
-    { console.log('Populate')
-      this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value)
-        .pipe(
-          tap (data => {
-            this.setupService.contractSetup = data}),
-          map (data => data[0].id),
-          concatMap( data => {
-            const getPeriodicalFeeSetup$ = this.apiService.getRentalContractPeriodicalFeeSetupByRentalContractSetup(data)
-            const getOneTimeFeeSetup$ = this.apiService.getRentalContractOneTimeFeeSetupByRentalContractSetup(data)
-            const getUtilityFeeSetup$ = this.apiService.getRentalContractUtilityFeeSetupByRentalContractSetup(data)
-            return forkJoin([getPeriodicalFeeSetup$, getOneTimeFeeSetup$, getUtilityFeeSetup$])
-          }
-        )
-        )
-        .subscribe(
-          data =>{
-            this.setupService.periodicalFeeArray = data[0]
-            this.setupService.oneTimeFeeArray = data[1]
-            this.setupService.utilityFeeArray = data[2]
-            this.setupService.populateRentalContractSetupCard(this.setupService.contractSetup[0])
-            this.setupService.feeIsLoaded$.next(true)
-          }
-      )
-    } if (!this.globalService.contractSetupExists$.value)
-    { console.log('Initialize')
-      this.setupService.initializeRentalContractSetupCard()
-    }
-      const dialogConfig = new MatDialogConfig()
-      dialogConfig.disableClose = false
-      dialogConfig.autoFocus = true
-      dialogConfig.width = '1400px'
-      dialogConfig.maxHeight = '90%'
-      // dialogConfig.maxHeight = '100%'
-      this.dialog.open(RentalContractsSetupComponent, dialogConfig)
-    }
-
-
   onCreate() {
-    this.service.resetContractCardFees()
     this.service.rentContractIsLoaded$.next(false)
-    this.service.periodicalFeeSetupArray = []
-    this.service.oneTimeFeeSetupArray = []
-    this.service.utilityFeeSetupArray = []
+    this.service.rentContractReset()
+    this.service.rentContractDatesFormLimitsReset()
 
-    this.service.premises = []
-    this.service.tenantContractors = []
-    this.service.brands = []
-    this.service.selectedTenantBrands = []
-
-    const retrieveTenantsPremises = forkJoin([
+    const retrieveData = forkJoin([
       this.apiService.getTenants(),
       this.apiService.getPremises(),
       this.apiService.getBrands(),
@@ -225,52 +155,32 @@ export class RentalContractsListComponent implements OnInit {
           return forkJoin([getPeriodicalFeeSetup$, getOneTimeFeeSetup$, getUtilityFeeSetup$])
         }
       ))
-    ]
-    )
-    retrieveTenantsPremises.pipe(
+    ])
+    retrieveData.pipe(
       tap (data => {
-        // @ts-ignore
         this.service.tenantContractors = data[0]
-        // @ts-ignore
         this.service.premises = data[1]
-        // @ts-ignore
         this.service.brands = data[2]
-        this.service.periodicalFeeSetupArray = data[3][0]
-        this.service.oneTimeFeeSetupArray = data[3][1]
-        this.service.utilityFeeSetupArray = data[3][2]
+        this.service.periodicalFeeSetupArray.next(data[3][0])
+        this.service.oneTimeFeeSetupArray.next(data[3][1])
+        this.service.utilityFeeSetupArray.next(data[3][2])
       })
-    ).subscribe(data => {
+    ).subscribe(() => {
       this.service.initializeNewRentalContractCard()
       const dialogConfig = new MatDialogConfig()
       dialogConfig.disableClose = false
       dialogConfig.autoFocus = true
       dialogConfig.width = '1400px'
       dialogConfig.maxHeight = '90%'
-      // dialogConfig.maxHeight = '100%'
       this.dialog.open(RentalContractsFormComponent, dialogConfig)
   })}
 
   onEdit(contract: RentalContractModelExpanded) {
-    this.service.contract = contract
-    this.service.resetContractCardFees()
     this.service.rentContractIsLoaded$.next(false)
-    this.service.periodicalFeeSetupArray = []
-    this.service.oneTimeFeeSetupArray = []
-    this.service.utilityFeeSetupArray = []
-    this.service.contractSetup = []
+    this.service.rentContractReset()
+    this.service.rentContractDatesFormLimitsReset()
 
-    this.service.premises = []
-    this.service.tenantContractors = []
-    this.service.brands = []
-    this.service.selectedTenantBrands = []
-
-    const dialogConfig = new MatDialogConfig()
-    dialogConfig.disableClose = false
-    dialogConfig.autoFocus = true
-    dialogConfig.width = '1400px'
-    dialogConfig.maxHeight = '90%'
-    // dialogConfig.maxHeight = '100%'
-    this.dialog.open(RentalContractsFormComponent, dialogConfig)
+    this.service.contract = contract
 
     const retrieveTenantsPremises = forkJoin([
       this.apiService.getTenants(),
@@ -286,19 +196,20 @@ export class RentalContractsListComponent implements OnInit {
         this.service.tenantContractors = data[0]
         this.service.premises = data[1]
         this.service.brands = data[2]
-        this.service.periodicalFeeContractArray = data[3]
-        this.service.oneTimeFeeContractArray = data[4]
-        this.service.utilityFeeContractArray = data[5]
+        this.service.periodicalFeeContractArray.next(data[3])
+        this.service.oneTimeFeeContractArray.next(data[4])
+        this.service.utilityFeeContractArray.next(data[5])
       })
     ).subscribe(() => {
-      this.service.getSelectedBrands(contract.tenant_contractor_id)
       this.service.populateRentalContractCard(contract)
-      this.service.selectedPremise = contract.premise_number
-      this.service.selectedTenant = contract.tenant_contractor_company_name
-      this.service.selectedBrand = contract.brand_name
-      this.service.rentContractIsLoaded$.next(true)
-
-    })}
+    })
+    const dialogConfig = new MatDialogConfig()
+    dialogConfig.disableClose = false
+    dialogConfig.autoFocus = true
+    dialogConfig.width = '1400px'
+    dialogConfig.maxHeight = '90%'
+    this.dialog.open(RentalContractsFormComponent, dialogConfig)
+  }
 
   onDelete(data: RentalContractModelExpanded) {
     this.apiService.deleteRentalContract(data.id)
@@ -388,6 +299,65 @@ export class RentalContractsListComponent implements OnInit {
     )
   }
 
+  // Contract setup settings
+  contractSetup(){
+    this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value).subscribe({
+        next: data => {
+          if (data.length > 0) {
+            this.globalService.contractSetupExists$.next(true)
+            console.log('Rental contract setup exists')
+          }
+          if (data.length == 0) {
+            this.globalService.contractSetupExists$.next(false)
+            console.log('Rental contract setup does not exist')
+          }
+        },
+        error: () => {
+          this.globalService.contractSetupExists$.next(false)
+          console.log('Rental contract setup does not exist')
+        }
+      }
+    )
+    this.setupService.feeIsLoaded$.next(false)
+    this.setupService.resetContractSetupCard()
+    // this.globalService.editCardTrigger$.next(true)
+    if (this.globalService.contractSetupExists$.value)
+    { console.log('Populate rental contract setup')
+      this.apiService.getRentalContractSetupByBuilding(this.globalService.buildingId$.value)
+        .pipe(
+          tap (data => {
+            this.setupService.contractSetup = data}),
+          map (data => data[0].id),
+          concatMap( data => {
+              const getPeriodicalFeeSetup$ = this.apiService.getRentalContractPeriodicalFeeSetupByRentalContractSetup(data)
+              const getOneTimeFeeSetup$ = this.apiService.getRentalContractOneTimeFeeSetupByRentalContractSetup(data)
+              const getUtilityFeeSetup$ = this.apiService.getRentalContractUtilityFeeSetupByRentalContractSetup(data)
+              return forkJoin([getPeriodicalFeeSetup$, getOneTimeFeeSetup$, getUtilityFeeSetup$])
+            }
+          )
+        )
+        .subscribe(
+          data =>{
+            this.setupService.periodicalFeeArray = data[0]
+            this.setupService.oneTimeFeeArray = data[1]
+            this.setupService.utilityFeeArray = data[2]
+            this.setupService.populateRentalContractSetupCard(this.setupService.contractSetup[0])
+            this.setupService.feeIsLoaded$.next(true)
+          }
+        )
+    } if (!this.globalService.contractSetupExists$.value)
+    { console.log('Initialize')
+      this.setupService.initializeRentalContractSetupCard()
+    }
+    const dialogConfig = new MatDialogConfig()
+    dialogConfig.disableClose = false
+    dialogConfig.autoFocus = true
+    dialogConfig.width = '1400px'
+    dialogConfig.maxHeight = '90%'
+    this.dialog.open(RentalContractsSetupComponent, dialogConfig)
+  }
+
+  // Delete current contract setup
   clearContractSetup() {
     let contracts: RentalContractSetupModel[]
     this.apiService.getRentalContractSetups().subscribe(
@@ -396,8 +366,4 @@ export class RentalContractsListComponent implements OnInit {
          contracts = data
          for (let contract of contracts){
            this.apiService.deleteRentalContractSetup(contract.id)
-         }
-       }
-     )
-  }
-}
+         }})}}

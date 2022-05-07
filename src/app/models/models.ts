@@ -156,7 +156,6 @@ export enum PremiseType {
 export interface RentalContractModel{
 
   id: number
-
   rent_contract_number: string
   rent_contract_signing_date: Date
   rent_contract_expiration_date: Date

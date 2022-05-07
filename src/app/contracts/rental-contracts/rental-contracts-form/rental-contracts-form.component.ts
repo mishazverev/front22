@@ -5,27 +5,18 @@ import {MatDialog, MatDialogConfig, MatDialogRef} from "@angular/material/dialog
 import {NotificationService} from "../../../shared/notification.service";
 import {GlobalAppService} from "../../../shared/services/global-app.service";
 import {RentalContractsService} from "../../../shared/services/rental-contracts.service";
-import {BehaviorSubject, combineLatest, merge, mergeAll, Observable, Subscription} from "rxjs";
-import {tap} from "rxjs/operators";
+import {combineLatest, combineLatestWith, tap} from "rxjs/operators";
 import {
   RentalContractModel,
-  RentalContractModelExpanded,
   RentalContractOneTimeFeeModel,
-  RentalContractOneTimeFeeSetupModel,
   RentalContractPeriodicalFeeModel,
-  RentalContractPeriodicalFeeSetupModel,
-  RentalContractSetupModel,
   RentalContractUtilityFeeModel,
-  RentalContractUtilityFeeSetupModel
 } from "../../../models/models";
 import {EnumService} from "../../../shared/services/enum.service";
 import {RentalContractSetupService} from "../../../shared/services/rental-contract-setup.service";
-import {MaterialModule} from "../../../material/material.module";
-import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {ENTER} from "@angular/cdk/keycodes";
-import {RentalContractsSetupComponent} from "../rental-contracts-setup/rental-contracts-setup.component";
 import {RentalContractsFormSetupComponent} from "./rental-contracts-form-setup/rental-contracts-form-setup.component";
-
+import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-rental-contracts-form',
@@ -47,153 +38,40 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     public dialogRef: MatDialogRef<RentalContractsFormComponent>,
     private dialog: MatDialog,
     private notificationService: NotificationService,
-
   )
   {}
 
-  public brandSelectListSubscription$: Subscription = new Subscription;
-  public brandSelectSubscription$: Subscription = new Subscription;
-  public premiseAreaSummingSubscription$: Subscription = new Subscription;
-  public contractDuration_$: Subscription = new Subscription;
-  public rentContractDates$: Subscription = new Subscription()
-
-  private selectedPremiseArea: [] = []
-
   ngOnInit(): void {
-    // @ts-ignore
-    this.service.rentContractSigningDateMin$.next(this.datepipe.transform(this.service.rentContractSigningDateMin$.value), 'YYYY-MM-dd')
-    console.log(this.service.rentContractSigningDateMin$.value)
 
-    this.globalService.editCardTrigger$.subscribe( data => {
-        if (data == false){
-          this.service.form_contract.disable()
-          this.service.periodicalFeeTabs.disable()
-          this.service.oneTimeFeeTabs.disable()
-          this.service.utilityFeeTabs.disable()
-        } if (data == true){
-        this.service.form_contract.enable()
-        this.service.periodicalFeeTabs.enable()
-        this.service.oneTimeFeeTabs.enable()
-        this.service.utilityFeeTabs.enable()
-        }
-      }
-    )
+    // Enable or disable fee cards editing
 
-    this.brandSelectListSubscription$ = this.service.form_contract.controls['tenant_contractor_id'].valueChanges.subscribe(
-      data => {
-        console.log('Tenant is changed')
-          for (let tenant of this.service.tenantContractors){
-            if (tenant.id == data){
-              this.service.selectedTenant = tenant.company_name
-            }
-          }
-          this.service.selectedTenantBrands = []
-          this.service.getSelectedBrands(data)
-        })
-
-    this.brandSelectSubscription$ = this.service.form_contract.controls['brand'].valueChanges.subscribe(
-      data=>{
-        for (let brand of this.service.selectedTenantBrands){
-          if(brand.id == data){
-            this.service.selectedBrand = brand.brand_name
-          }
-        }
-      }
-    )
-
-    this.premiseAreaSummingSubscription$ = this.service.form_contract.controls['premise_id'].valueChanges.subscribe(
-      data => {
-        console.log('Premise selection changed')
-
-        this.selectedPremiseArea = []
-        this.service.selectedPremise = []
-        this.service.form_contract.controls['contracted_area'].setValue('')
-        if (data){
-        for (let id of data){
-          for (let premise of this.service.premises){
-            if (premise.id === id){
-              // @ts-ignore
-              this.selectedPremiseArea.push(premise.measured_area)
-              this.service.selectedPremise.push(premise.number)
-              this.service.form_contract.controls['contracted_area'].setValue(this.areaSumming(this.selectedPremiseArea))
-            }
-          }
-        }}
+    this.globalService.editCardTrigger$
+      .pipe(
+        combineLatestWith(
+          this.service.rentContractDatesInOneInterval$,
+          this.service.rentContractSigningDate$,
+          this.service.rentContractExpirationDate$,
+          )
+      )
+      .subscribe( data => {
+        console.log(data)
+        // if (!data){
+        //   this.service.form_contract.disable()
+        //   this.service.periodicalFeeTabs.disable()
+        //   this.service.oneTimeFeeTabs.disable()
+        //   this.service.utilityFeeTabs.disable()
+        // } if (data && !this.service.rentContractDatesInOneInterval$){
+        //   this.service.form_contract.enable()
+        //   this.service.periodicalFeeTabs.enable()
+        //   this.service.oneTimeFeeTabs.enable()
+        //   this.service.utilityFeeTabs.enable()
+        //   this.service.rentContractDatesDisable()
+        // }
       })
 
-    this.service.guaranteeDepositCoverage$ = combineLatest([
-      this.service.form_contract.controls['contracted_area'].valueChanges,
-      this.service.form_contract.controls['fixed_rent_per_sqm'].valueChanges,
-      this.service.form_contract.controls['fixed_rent_total_payment'].valueChanges,
-      this.service.form_contract.controls['fixed_rent_calculation_period'].valueChanges,
-      this.service.form_contract.controls['guarantee_deposit_amount'].valueChanges,
-      this.service.fixedRentCalculationObjectSubject
-    ]).subscribe( data=>{
-      this.service.depositCoverageCalculation(
-        data[0],
-        data[1],
-        data[2],
-        data[3],
-        data[4],
-        data[5],
-      )
-    })
+    // @ts-ignore
+    this.service.rentContractSigningDateMin$.next(this.datepipe.transform(this.service.rentContractSigningDateMin$.value), 'YYYY-MM-dd')
 
-    this.service.depositCoverageCalculation(
-      this.service.form_contract.controls['contracted_area'].value,
-      this.service.form_contract.controls['fixed_rent_per_sqm'].value,
-      this.service.form_contract.controls['fixed_rent_total_payment'].value,
-      this.service.form_contract.controls['fixed_rent_calculation_period'].value,
-      this.service.form_contract.controls['guarantee_deposit_amount'].value,
-      this.service.fixedRentCalculationObjectSubject.value
-    )
-
-// Contract dates
-
-    if (this.service.form_contract.controls['rent_contract_signing_date'].value){
-      this.service.rentContractSigningDate$.next(this.service.form_contract.controls['rent_contract_signing_date'].value)}
-
-    if (this.service.form_contract.controls['rent_contract_expiration_date'].value){
-      this.service.rentContractExpirationDate$.next(this.service.form_contract.controls['rent_contract_expiration_date'].value)}
-
-    if (this.service.form_contract.controls['rent_contract_signing_date'].value && this.service.form_contract.controls['rent_contract_expiration_date'].value){
-      this.service.form_contract.controls['act_of_transfer_date'].enable()
-      this.service.form_contract.controls['rent_start_date'].enable()
-      this.service.form_contract.controls['premise_return_date'].enable()
-      this.service.form_contract.controls['stop_billing_date'].enable()
-    }
-    if (!this.service.form_contract.controls['rent_contract_signing_date'].value || !this.service.form_contract.controls['rent_contract_expiration_date'].value){
-      this.service.form_contract.controls['act_of_transfer_date'].disable()
-      this.service.form_contract.controls['rent_start_date'].disable()
-      this.service.form_contract.controls['premise_return_date'].disable()
-      this.service.form_contract.controls['stop_billing_date'].disable()
-    }
-
-    this.contractDuration_$ = combineLatest([
-      this.service.form_contract.controls['rent_contract_signing_date'].valueChanges,
-      this.service.form_contract.controls['rent_contract_expiration_date'].valueChanges,
-    ]).subscribe(value=>{
-      if(value[0] && value[1]){
-        let diff = this.service.dateDiff(value[0], value[1])
-      }
-    })
-
-    if (this.service.form_contract.controls['guarantee_deposit_type'].value == 'Cash'
-      || this.service.form_contract.controls['guarantee_deposit_type'].value == 'Corporate_guarantee'){
-      this.service.form_contract.controls['guarantee_bank_guarantee_expiration_date'].reset()
-      this.service.form_contract.controls['guarantee_bank_guarantee_expiration_date'].disable()
-    }
-
-
-
-  }
-
-  areaSumming(area: []){
-    let sum = 0
-      for (let premise of area){
-        sum = sum + Number(premise)
-      }
-    return sum
   }
 
   ms(time: number) {
@@ -266,11 +144,9 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     }
   }
 
-
   //Contract card submitting
   onSubmit(){
     const rentalContractData: RentalContractModel = this.service.form_contract.value
-    this.service.rentalContractNumbersArray.value.push(rentalContractData.rent_contract_number)
     const periodicalFeeData: RentalContractPeriodicalFeeModel[] = this.service.periodicalFeeTabs.getRawValue()
     const oneTimeFeeData: RentalContractOneTimeFeeModel[] = this.service.oneTimeFeeTabs.getRawValue()
     const utilityFeeData: RentalContractUtilityFeeModel[] = this.service.utilityFeeTabs.getRawValue()
@@ -301,7 +177,6 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     rentalContractData.insurance_actual_providing_date = this.datepipe.transform(rentalContractData.insurance_actual_providing_date, 'YYYY-MM-dd')
     // @ts-ignore
     rentalContractData.insurance_expiration_date = this.datepipe.transform(rentalContractData.insurance_expiration_date, 'YYYY-MM-dd')
-
 
     if (rentalContractData.id){
     this.apiService.updateRentalContract(rentalContractData.id, rentalContractData)
@@ -342,30 +217,43 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     }
   }
 
+// TBD
   contractSetupOpen(){
     const dialogConfig = new MatDialogConfig()
     dialogConfig.disableClose = false
     dialogConfig.autoFocus = true
     dialogConfig.width = '1400px'
     dialogConfig.maxHeight = '90%'
-    // dialogConfig.maxHeight = '100%'
     this.dialog.open(RentalContractsFormSetupComponent, dialogConfig)
   }
-
 
   //Contract card closing
   onClose() {
     this.dialogRef.close()
   }
 
+  // Subscriptions teardown
   ngOnDestroy() {
-    this.brandSelectListSubscription$.unsubscribe()
-    this.premiseAreaSummingSubscription$.unsubscribe()
+    this.service.rentContractPremiseAreaSummingSubscription$.unsubscribe()
     this.service.rentContractPremiseSubscription$.unsubscribe()
     this.service.rentContractDateSubscription$.unsubscribe()
     this.service.rentContractDateSubscription_2$.unsubscribe()
     this.service.guaranteeDepositTypeSubscription$.unsubscribe()
+    this.service.guaranteeDepositCoverageSubscription$.unsubscribe()
 
+    this.service.periodicalFeeMethodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.service.periodicalFeeCalculationPeriodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.service.periodicalFeeIndexationSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.service.periodicalFeePaymentSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+
+    this.service.oneTimeFeeTriggeringEventSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.service.oneTimeFeeTriggeringEventDaySubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.service.oneTimeFeePaymentSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.service.oneTimeFeeMethodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+
+    this.service.rentContractTenantChangeSubscription$.unsubscribe()
+    this.service.rentContractBrandSelectSubscription$.unsubscribe()
+    this.service.intervalDatesValidationSubscription$.unsubscribe()
 
     console.log('Rental contracts form is closed')
   }
