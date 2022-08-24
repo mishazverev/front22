@@ -25,6 +25,13 @@ import { RentalContractsSetupComponent } from './contracts/rental-contracts/rent
 import {MatProgressBarModule} from "@angular/material/progress-bar";
 import { RentalContractsFormSetupComponent } from './contracts/rental-contracts/rental-contracts-form/rental-contracts-form-setup/rental-contracts-form-setup.component';
 import {MAT_DATE_LOCALE} from "@angular/material/core";
+import { DateTransformCorrectHoursPipe } from './shared/pipes/date-transform-correct-hours.pipe';
+import { ArraySortPipe } from './shared/pipes/array-sort.pipe';
+import { FixedRentStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/fixed-rent-step/fixed-rent-step.component';
+import { FixedRentIndexationStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/fixed-rent-indexation-step/fixed-rent-indexation-step.component';
+import { PeriodicalFeeIndexationStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/periodical-fee-indexation-step/periodical-fee-indexation-step.component';
+import { PeriodicalFeeStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/periodical-fee-step/periodical-fee-step.component';
+import { TurnoverFeeStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/turnover-fee-step/turnover-fee-step.component';
 
 @NgModule({
   declarations: [
@@ -40,7 +47,13 @@ import {MAT_DATE_LOCALE} from "@angular/material/core";
     RentalContractsFormComponent,
     RentalContractsSetupComponent,
     RentalContractsFormSetupComponent,
-
+    DateTransformCorrectHoursPipe,
+    ArraySortPipe,
+    FixedRentStepComponent,
+    FixedRentIndexationStepComponent,
+    PeriodicalFeeIndexationStepComponent,
+    PeriodicalFeeStepComponent,
+    TurnoverFeeStepComponent,
   ],
     imports: [
         BrowserModule,
@@ -57,8 +70,9 @@ import {MAT_DATE_LOCALE} from "@angular/material/core";
     ],
   exports: [
   ],
-  providers: [
+  providers: [ DateTransformCorrectHoursPipe, ArraySortPipe,
   DatePipe, NotificationService, MatSnackBar,
+
     {provide: MAT_DATE_LOCALE, useValue: 'ru-RU'},
 
 ],

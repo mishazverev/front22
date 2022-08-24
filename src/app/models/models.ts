@@ -34,8 +34,6 @@ export interface BrandModel {
   needed_additional_requirements: string
 }
 
-
-
 export interface CounterModel{
   id: number
   counter_number: number
@@ -90,7 +88,6 @@ export interface PremiseModelStep2 {
   cooling_capacity: number
   water_supply: boolean
 }
-
 
 export interface TenantModel {
   id: number
@@ -171,7 +168,6 @@ export interface RentalContractModel{
   stop_billing_date: Date
   premise_return_date: Date
 
-
   fixed_rent_name: string
   fixed_rent_calculation_period: string
   fixed_rent_payment_period: string
@@ -233,12 +229,12 @@ export interface AdditionalAgreementModel{
   additional_agreement_signing_date: Date
   additional_agreement_expiration_date: Date
 
-  premise_id: number
+  // premise_id: number[]
   contracted_area: number
   tenant_contractor_id: number
   brand: string
 
-  act_of_transfer_date: Date
+  // act_of_transfer_date: Date
   rent_start_date: Date
   premise_return_date: Date
   stop_billing_date: Date
@@ -247,6 +243,7 @@ export interface AdditionalAgreementModel{
   fixed_rent_payment_period: string
 
   fixed_rent_per_sqm: number
+
   fixed_rent_total_payment: number
   fixed_rent_advance_payment_day: number
   fixed_rent_post_payment_day: number
@@ -457,4 +454,65 @@ export interface Counter {
 export interface DatesInterval {
   startDate: Date
   expirationDate: Date
+}
+
+export interface FixedRentStepModel {
+  id: number
+  rent_contract_id: number
+  rent_contract_additional_agreement_id: number
+  start_date: Date
+  expiration_date: Date
+  fixed_rent_amount: number
+  fixed_rent_calculation_period: string
+  fixed_rent_calculation_method: string
+  last_updated: Date
+  user_updated: string
+}
+
+export interface FixedRentIndexationStepModel {
+  id: number
+  rent_contract_id: number
+  rent_contract_additional_agreement_id: number
+  start_date: Date
+  expiration_date: Date
+  fixed_rent_indexation_amount: number
+  fixed_rent_indexation_calculation_period: string
+  last_updated: Date
+  user_updated: string
+}
+
+export interface TurnoverFeeStepModel {
+  id: number
+  rent_contract_id: number
+  rent_contract_additional_agreement_id: number
+  start_date: Date
+  expiration_date: Date
+  turnover_fee_amount: number
+  turnover_fee_calculation_period: string
+  last_updated: Date
+  user_updated: string
+}
+
+
+export interface PeriodicalFeeStepModel {
+  id: number
+  periodical_fee_id: number
+  start_date: Date
+  expiration_date: Date
+  periodical_fee_amount: number
+  periodical_fee_calculation_period: string
+  periodical_fee_calculation_method: string
+  last_updated: Date
+  user_updated: string
+}
+
+export interface PeriodicalFeeIndexationStepModel {
+  id: number
+  periodical_fee_id: number
+  start_date: Date
+  expiration_date: Date
+  periodical_fee_indexation_amount: number
+  periodical_fee_indexation_calculation_period: string
+  last_updated: Date
+  user_updated: string
 }

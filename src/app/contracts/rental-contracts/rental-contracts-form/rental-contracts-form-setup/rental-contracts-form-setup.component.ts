@@ -19,6 +19,7 @@ import {EnumService} from "../../../../shared/services/enum.service";
 import {DatePipe} from "@angular/common";
 import {combineLatest, Subscription} from "rxjs";
 import {FormArray} from "@angular/forms";
+import {RentalContractFeesService} from "../../../../shared/services/rental-contract-fees.service";
 
 
 @Component({
@@ -32,6 +33,7 @@ export class RentalContractsFormSetupComponent implements OnInit {
   separatorKeysCodes: number[] = [ENTER];
   constructor(
     public service: RentalContractsService,
+    public feeService: RentalContractFeesService,
     public globalService: GlobalAppService,
     public apiService: ApiService,
     private notificationService: NotificationService,
@@ -76,7 +78,7 @@ export class RentalContractsFormSetupComponent implements OnInit {
           }}))
       .subscribe(
         data => {
-          this.service.fixedRentCalculationObjectSubject.next(data)
+          this.service.fixedRentCalculationMethod$.next(data)
         })
 
     this.fixedRentCalculationPeriod$ = this.service.form_contract.controls['fixed_rent_calculation_period'].valueChanges
@@ -91,7 +93,7 @@ export class RentalContractsFormSetupComponent implements OnInit {
         }))
       .subscribe(
         data => {
-          this.service.fixedRentCalculationPeriodSubject.next(data)
+          this.service.fixedRentCalculationPeriod$.next(data)
         })
 
     this.fixedRentPrePaymentOrPostPayment$ =
@@ -135,21 +137,6 @@ export class RentalContractsFormSetupComponent implements OnInit {
           }}
         )
   }
-
-  // submitFees(periodicalFeeTabs: FormArray)
-  // {
-  //   for (let fee of periodicalFeeTabs.controls){
-  //     if (!fee.value['id']){
-  //       console.log(fee.value)
-  //       this.apiService.createRentalContractPeriodicalFee(fee.value).subscribe(
-  //         data => {
-  //           // @ts-ignore
-  //           fee.value['id'] = data.id
-  //         }
-  //       )
-  //     }
-  //   }
-  // }
 
   submitFee(
     rentalContractData: RentalContractModel,
@@ -216,9 +203,9 @@ export class RentalContractsFormSetupComponent implements OnInit {
     const rentalContractData: RentalContractModel = {
       ...this.service.form_contract.getRawValue(),
     }
-    const periodicalFeeData: RentalContractPeriodicalFeeModel[] = this.service.periodicalFeeTabs.getRawValue()
-    const oneTimeFeeData: RentalContractOneTimeFeeModel[] = this.service.oneTimeFeeTabs.getRawValue()
-    const utilityFeeData: RentalContractUtilityFeeModel[] = this.service.utilityFeeTabs.getRawValue()
+    const periodicalFeeData: RentalContractPeriodicalFeeModel[] = this.feeService.periodicalFeeTabs.getRawValue()
+    const oneTimeFeeData: RentalContractOneTimeFeeModel[] = this.feeService.oneTimeFeeTabs.getRawValue()
+    const utilityFeeData: RentalContractUtilityFeeModel[] = this.feeService.utilityFeeTabs.getRawValue()
 
     rentalContractData.last_updated =  new Date()
 

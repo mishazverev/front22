@@ -18,6 +18,9 @@ import {concatMap, map, tap} from "rxjs/operators";
 import {BehaviorSubject, forkJoin, Subscription, zip} from "rxjs";
 import {RentalContractsSetupComponent} from "../rental-contracts-setup/rental-contracts-setup.component";
 import {GlobalAppService} from "../../../shared/services/global-app.service";
+import {DateTransformCorrectHoursPipe} from "../../../shared/pipes/date-transform-correct-hours.pipe";
+import {RentalContractFeesService} from "../../../shared/services/rental-contract-fees.service";
+import {StepPaymentService} from "../../../shared/services/step-payment.service";
 
 
 @Component({
@@ -31,9 +34,12 @@ export class RentalContractsListComponent implements OnInit {
     private apiService: ApiService,
     private dialog: MatDialog,
     public service:RentalContractsService,
+    public feeService: RentalContractFeesService,
+    public stepService: StepPaymentService,
     private globalService: GlobalAppService,
     private setupService: RentalContractSetupService,
     private notificationService: NotificationService,
+    private dateCorrectHours: DateTransformCorrectHoursPipe
   ) {}
 
   numberOfContracts = -1
@@ -54,8 +60,14 @@ export class RentalContractsListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   ngOnInit(): void {
-    // disable buttons
     this.service.rentContractListButtonsActivateTrigger$.next(false)
+
+    this.numberOfContracts = -1
+    this.numberOfPremisesLoaded$.next(0)
+    this.numberOfCompanyNamesLoaded$.next(0)
+    this.numberOfBrandsLoaded$.next(0)
+
+    // disable buttons
 
     // populate global building setup
     this.globalService.buildingSetup[this.globalService.buildingId$.value] = {
@@ -73,6 +85,9 @@ export class RentalContractsListComponent implements OnInit {
     // load Rent contracts to fill the list
     this.apiService.getRentalContracts().subscribe(
       (data: RentalContractModelExpanded[]) => {
+        for(let contract of data){
+         this.service.changeDateFormatFromApi(contract)
+        }
         this.service.rentalContractsTableExpanded = data;
         this.numberOfContracts = this.service.rentalContractsTableExpanded.length
         this.service.rentalContractNumbersArray.next([])
@@ -161,9 +176,9 @@ export class RentalContractsListComponent implements OnInit {
         this.service.tenantContractors = data[0]
         this.service.premises = data[1]
         this.service.brands = data[2]
-        this.service.periodicalFeeSetupArray.next(data[3][0])
-        this.service.oneTimeFeeSetupArray.next(data[3][1])
-        this.service.utilityFeeSetupArray.next(data[3][2])
+        this.feeService.periodicalFeeSetupArray.next(data[3][0])
+        this.feeService.oneTimeFeeSetupArray.next(data[3][1])
+        this.feeService.utilityFeeSetupArray.next(data[3][2])
       })
     ).subscribe(() => {
       this.service.initializeNewRentalContractCard()
@@ -180,8 +195,6 @@ export class RentalContractsListComponent implements OnInit {
     this.service.rentContractReset()
     this.service.rentContractDatesFormLimitsReset()
 
-    this.service.contract = contract
-
     const retrieveTenantsPremises = forkJoin([
       this.apiService.getTenants(),
       this.apiService.getPremises(),
@@ -189,6 +202,7 @@ export class RentalContractsListComponent implements OnInit {
       this.apiService.getRentalContractPeriodicalFeeByRentalContract(contract.id),
       this.apiService.getRentalContractOneTimeFeeByRentalContract(contract.id),
       this.apiService.getRentalContractUtilityFeeByRentalContract(contract.id),
+      this.apiService.getFixedRentFeeStepsByRentalContract(contract.id)
     ]
     )
     retrieveTenantsPremises.pipe(
@@ -196,11 +210,18 @@ export class RentalContractsListComponent implements OnInit {
         this.service.tenantContractors = data[0]
         this.service.premises = data[1]
         this.service.brands = data[2]
-        this.service.periodicalFeeContractArray.next(data[3])
-        this.service.oneTimeFeeContractArray.next(data[4])
-        this.service.utilityFeeContractArray.next(data[5])
+        this.feeService.periodicalFeeContractArray.next(data[3])
+        this.feeService.oneTimeFeeContractArray.next(data[4])
+        this.feeService.utilityFeeContractArray.next(data[5])
+        if (data[6].length > 0){
+          this.stepService.fixedRentStepArray.next(this.stepService.stepsLoader(data[6]))
+          console.log(contract.id)
+          console.log(data[3])
+          console.log(data[6])
+        }
       })
     ).subscribe(() => {
+      console.log('Initial contract data collected')
       this.service.populateRentalContractCard(contract)
     })
     const dialogConfig = new MatDialogConfig()
@@ -239,7 +260,6 @@ export class RentalContractsListComponent implements OnInit {
       data => {
         if (data.id) {
           let index = this.service.rentalContractsTableExpanded.findIndex(d => d.id === data.id);//find index in your array
-
           this.service.rentalContractsTableExpanded[index].id = data.id
           this.service.rentalContractsTableExpanded[index].rent_contract_number = data.rent_contract_number
           this.service.rentalContractsTableExpanded[index].rent_contract_signing_date = data.rent_contract_signing_date

@@ -11,12 +11,15 @@ import {
   RentalContractOneTimeFeeModel,
   RentalContractPeriodicalFeeModel,
   RentalContractUtilityFeeModel,
+  FixedRentStepModel
 } from "../../../models/models";
 import {EnumService} from "../../../shared/services/enum.service";
 import {RentalContractSetupService} from "../../../shared/services/rental-contract-setup.service";
 import {ENTER} from "@angular/cdk/keycodes";
 import {RentalContractsFormSetupComponent} from "./rental-contracts-form-setup/rental-contracts-form-setup.component";
-import {Subscription} from "rxjs";
+import {pairwise, Subscription} from "rxjs";
+import {RentalContractFeesService} from "../../../shared/services/rental-contract-fees.service";
+import {StepPaymentService} from "../../../shared/services/step-payment.service";
 
 @Component({
   selector: 'app-rental-contracts-form',
@@ -30,6 +33,8 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
 
   constructor(
     public service: RentalContractsService,
+    public stepService: StepPaymentService,
+    public feeService: RentalContractFeesService,
     public enumService: EnumService,
     public globalService: GlobalAppService,
     public apiService: ApiService,
@@ -40,54 +45,7 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
   )
   {}
-
   ngOnInit(): void {
-
-    // Enable or disable fee cards editing
-
-    this.globalService.editCardTrigger$
-      .pipe(
-        combineLatestWith(
-          this.service.rentContractDatesInOneInterval$,
-          this.service.rentContractSigningDate$,
-          this.service.rentContractExpirationDate$,
-          )
-      )
-      .subscribe( data => {
-        console.log(data)
-        // if (!data){
-        //   this.service.form_contract.disable()
-        //   this.service.periodicalFeeTabs.disable()
-        //   this.service.oneTimeFeeTabs.disable()
-        //   this.service.utilityFeeTabs.disable()
-        // } if (data && !this.service.rentContractDatesInOneInterval$){
-        //   this.service.form_contract.enable()
-        //   this.service.periodicalFeeTabs.enable()
-        //   this.service.oneTimeFeeTabs.enable()
-        //   this.service.utilityFeeTabs.enable()
-        //   this.service.rentContractDatesDisable()
-        // }
-      })
-
-    // @ts-ignore
-    this.service.rentContractSigningDateMin$.next(this.datepipe.transform(this.service.rentContractSigningDateMin$.value), 'YYYY-MM-dd')
-
-  }
-
-  ms(time: number) {
-    let year, month, day, hour, minute, second;
-    second = Math.floor(time / 1000);
-    minute = Math.floor(second / 60);
-    second = second % 60;
-    hour = Math.floor(minute / 60);
-    minute = minute % 60;
-    day = Math.floor(hour / 24);
-    hour = hour % 24;
-    month = Math.floor(day / 30);
-    day = day % 30;
-    year = Math.floor(month / 12);
-    month = month % 12;
-    return { year, month, day, hour, minute, second };
   }
 
   //Contract fees submitting
@@ -144,13 +102,45 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     }
   }
 
+  submitStepPayments(
+    rentalContractData: RentalContractModel,
+    fixedRentStepData: FixedRentStepModel[]) {
+    fixedRentStepData.forEach((step, index) => {
+      step.rent_contract_id = rentalContractData.id
+      step.last_updated = new Date()
+      // @ts-ignore
+      step.start_date = this.datepipe.transform(step.start_date, 'YYYY-MM-dd')
+      // @ts-ignore
+      step.expiration_date = this.datepipe.transform(step.expiration_date, 'YYYY-MM-dd')
+      if (!step.id) {
+        this.apiService.createFixedRentFeeStep(step).subscribe(
+          () => console.log('New fixed rent fee step is created')
+        )
+      }
+        if (step.id) {
+          this.apiService.updateFixedRentFeeStep(step.id, step).subscribe(
+            () => console.log('New fixed rent fee step is created')
+          )
+        }
+    })
+    this.stepService.fixedRentStepDeletedArray.value.forEach((step) => {
+      console.log(step)
+      this.apiService.deleteFixedRentFeeStep(step.id).subscribe()
+      this.stepService.fixedRentStepDeletedArray.next([])
+    }
+    )
+  }
+
   //Contract card submitting
   onSubmit(){
     const rentalContractData: RentalContractModel = this.service.form_contract.value
-    const periodicalFeeData: RentalContractPeriodicalFeeModel[] = this.service.periodicalFeeTabs.getRawValue()
-    const oneTimeFeeData: RentalContractOneTimeFeeModel[] = this.service.oneTimeFeeTabs.getRawValue()
-    const utilityFeeData: RentalContractUtilityFeeModel[] = this.service.utilityFeeTabs.getRawValue()
+    const periodicalFeeData: RentalContractPeriodicalFeeModel[] = this.feeService.periodicalFeeTabs.getRawValue()
+    const oneTimeFeeData: RentalContractOneTimeFeeModel[] = this.feeService.oneTimeFeeTabs.getRawValue()
+    const utilityFeeData: RentalContractUtilityFeeModel[] = this.feeService.utilityFeeTabs.getRawValue()
+    const fixedRentStepData: FixedRentStepModel[] = this.stepService.fixedRentStepFormLines.getRawValue()
 
+    console.log(rentalContractData)
+    this.cancelSubscriptions()
     rentalContractData.last_updated =  new Date()
 
     // @ts-ignore
@@ -178,6 +168,7 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     // @ts-ignore
     rentalContractData.insurance_expiration_date = this.datepipe.transform(rentalContractData.insurance_expiration_date, 'YYYY-MM-dd')
 
+
     if (rentalContractData.id){
     this.apiService.updateRentalContract(rentalContractData.id, rentalContractData)
       .pipe(
@@ -188,12 +179,18 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
               periodicalFeeData,
               oneTimeFeeData,
               utilityFeeData)
+            this.submitStepPayments(
+              rentalContractData,
+              fixedRentStepData
+            )
           }
         )
       )
       .subscribe(data => {
         // @ts-ignore
-        this.service.updateTableRow(data, this.service.selectedPremise, this.service.selectedTenant, this.service.selectedBrand)
+        const contract: RentalContractModel = data
+        this.service.changeDateFormatFromApi(contract)
+        this.service.updateTableRow(contract, this.service.selectedPremise, this.service.selectedTenant, this.service.selectedBrand)
         this.service.form_contract.reset();
         this.notificationService.success('Договор успешно обновлён');
         this.dialogRef.close()
@@ -209,7 +206,9 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
           oneTimeFeeData,
           utilityFeeData)
         // @ts-ignore
-        this.service.newTableRow(data, this.service.selectedPremise, this.service.selectedTenant, this.service.selectedBrand)
+        const contract: RentalContractModel = data
+        this.service.changeDateFormatFromApi(contract)
+        this.service.newTableRow(contract, this.service.selectedPremise, this.service.selectedTenant, this.service.selectedBrand)
         this.service.form_contract.reset()
         this.notificationService.success('Договор успешно создан');
         this.dialogRef.close()
@@ -233,28 +232,32 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   }
 
   // Subscriptions teardown
-  ngOnDestroy() {
+  cancelSubscriptions(){
     this.service.rentContractPremiseAreaSummingSubscription$.unsubscribe()
     this.service.rentContractPremiseSubscription$.unsubscribe()
     this.service.rentContractDateSubscription$.unsubscribe()
-    this.service.rentContractDateSubscription_2$.unsubscribe()
     this.service.guaranteeDepositTypeSubscription$.unsubscribe()
     this.service.guaranteeDepositCoverageSubscription$.unsubscribe()
 
-    this.service.periodicalFeeMethodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
-    this.service.periodicalFeeCalculationPeriodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
-    this.service.periodicalFeeIndexationSubscriptionArray.forEach(subscription => subscription.unsubscribe())
-    this.service.periodicalFeePaymentSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.periodicalFeeMethodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.periodicalFeeCalculationPeriodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.periodicalFeeIndexationSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.periodicalFeePaymentSubscriptionArray.forEach(subscription => subscription.unsubscribe())
 
-    this.service.oneTimeFeeTriggeringEventSubscriptionArray.forEach(subscription => subscription.unsubscribe())
-    this.service.oneTimeFeeTriggeringEventDaySubscriptionArray.forEach(subscription => subscription.unsubscribe())
-    this.service.oneTimeFeePaymentSubscriptionArray.forEach(subscription => subscription.unsubscribe())
-    this.service.oneTimeFeeMethodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.oneTimeFeeTriggeringEventSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.oneTimeFeeTriggeringEventDaySubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.oneTimeFeePaymentSubscriptionArray.forEach(subscription => subscription.unsubscribe())
+    this.feeService.oneTimeFeeMethodSubscriptionArray.forEach(subscription => subscription.unsubscribe())
 
     this.service.rentContractTenantChangeSubscription$.unsubscribe()
     this.service.rentContractBrandSelectSubscription$.unsubscribe()
     this.service.intervalDatesValidationSubscription$.unsubscribe()
+    this.service.rentContractFieldsDisablingSubscription.unsubscribe()
 
+  }
+
+  ngOnDestroy() {
+    this.cancelSubscriptions()
     console.log('Rental contracts form is closed')
   }
 }

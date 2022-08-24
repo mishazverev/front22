@@ -276,9 +276,5 @@ export class RentalContractsSetupComponent implements OnInit, OnDestroy {
     for (let sub in this.setupService.oneTimeFeePaymentSubscriptionArray){
       this.setupService.oneTimeFeePaymentSubscriptionArray[sub].unsubscribe()
     }
-
-
   }
-
-
 }

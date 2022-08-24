@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { StepPaymentComponent } from './step-payment.component';
+import { FixedRentStepComponent } from './fixed-rent-step.component';
 
-describe('StepPaymentComponent', () => {
-  let component: StepPaymentComponent;
-  let fixture: ComponentFixture<StepPaymentComponent>;
+describe('FixedRentStepComponent', () => {
+  let component: FixedRentStepComponent;
+  let fixture: ComponentFixture<FixedRentStepComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ StepPaymentComponent ]
+      declarations: [ FixedRentStepComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(StepPaymentComponent);
+    fixture = TestBed.createComponent(FixedRentStepComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

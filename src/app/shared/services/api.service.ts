@@ -17,7 +17,7 @@ import {
   RentalContractUtilityFeeSetupModel,
   RentalContractUtilityFeeModel,
   RentalContractPeriodicalFeeModel,
-  RentalContractOneTimeFeeModel
+  RentalContractOneTimeFeeModel, FixedRentStepModel
 } from "../../models/models";
 
 interface TenantContactsModelApi{
@@ -63,6 +63,8 @@ export class ApiService {
   baseRentalContractPeriodicalFeeSetupUrl = `${this.baseUrl}api/rent-contract-periodical-fee-setup/`;
   baseRentalContractOneTimeFeeSetupUrl = `${this.baseUrl}api/rent-contract-one-time-fee-setup/`;
   baseRentalContractUtilityFeeSetupUrl = `${this.baseUrl}api/rent-contract-utility-fee-setup/`;
+
+  baseFixedRentStepUrl = `${this.baseUrl}api/fixed-rent-step/`;
 
   headers = new HttpHeaders({
     'Content-type': 'application/json',
@@ -502,5 +504,39 @@ export class ApiService {
   deleteRentalContractUtilityFeeSetup(id: number) {
     return this.httpClient.delete(`${this.baseRentalContractUtilityFeeSetupUrl}${id}/`, {headers: this.headers});
   }
+
+  // FixedRentFeeStep
+
+  getFixedRentFeeSteps() {
+    return this.httpClient.get<FixedRentStepModel[]>(this.baseFixedRentStepUrl, {headers: this.headers})
+  }
+
+  getFixedRentFeeStep(id: number) {
+    return this.httpClient.get<FixedRentStepModel>(`${this.baseFixedRentStepUrl}?id=${id}`)
+  }
+
+
+  getFixedRentFeeStepsByRentalContract(rent_contract_id: number) {
+    return this.httpClient.get<FixedRentStepModel[]>(`${this.baseFixedRentStepUrl}?rent_contract_id=${rent_contract_id}`)
+  }
+
+  getFixedRentFeeStepsByAdditionalAgreement(rent_contract_additional_agreement_id: number) {
+    return this.httpClient.get<FixedRentStepModel[]>(`${this.baseFixedRentStepUrl}?rent_contract_additional_agreement_id=${rent_contract_additional_agreement_id}`)
+  }
+
+  createFixedRentFeeStep(data: FixedRentStepModel) {
+    const body = JSON.stringify(data)
+    return this.httpClient.post(this.baseFixedRentStepUrl, body, {headers: this.headers})
+  }
+
+  updateFixedRentFeeStep(id: number, data: FixedRentStepModel) {
+    const body = JSON.stringify(data);
+    return this.httpClient.put(`${this.baseFixedRentStepUrl}${id}/`, body, {headers: this.headers});
+  }
+
+  deleteFixedRentFeeStep(id: number) {
+    return this.httpClient.delete(`${this.baseFixedRentStepUrl}${id}/`, {headers: this.headers});
+  }
+
 
 }
