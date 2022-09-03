@@ -1,7 +1,7 @@
 
 <div class="search-div">
   <button mat-raised-button
-          [disabled] = "service.rentContractListButtonsActivateTrigger$.value == false"
+          [disabled] = "service.rentContractListIsLoaded$.value == false"
           (click)="onCreate()
 
 "><mat-icon>add</mat-icon> Добавить договор</button>
@@ -9,17 +9,17 @@
     <mat-label>Найти...</mat-label>
     <input matInput type="text" [(ngModel)]="searchKey" autocomplete="on"  (keyup)="applyFilter()">
     <button
-      [disabled] = "service.rentContractListButtonsActivateTrigger$.value == false"
+      [disabled] = "service.rentContractListIsLoaded$.value == false"
       *ngIf="searchKey" matSuffix mat-icon-button aria-label="Clear" (click)="searchKey=''">
       <mat-icon>close</mat-icon>
     </button>
   </mat-form-field>
   <button mat-raised-button
-          [disabled] = "service.rentContractListButtonsActivateTrigger$.value == false"
+          [disabled] = "service.rentContractListIsLoaded$.value == false"
           (click)="contractSetup()
 "><mat-icon>settings</mat-icon> Настройки договора</button>
   <button mat-raised-button
-          [disabled] = "service.rentContractListButtonsActivateTrigger$.value == false"
+          [disabled] = "service.rentContractListIsLoaded$.value == false"
           (click)="clearContractSetup()
 "><mat-icon>delete</mat-icon></button>
 </div>

@@ -1,13 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Subscription} from "rxjs";
-import {RentalContractsService} from "../../../../../shared/services/rental-contracts.service";
-import {StepPaymentService} from "../../../../../shared/services/step-payment.service";
+import {RentalContractsService} from "../../../../../shared/services/rental-contract/rental-contracts.service";
+import {RentalContractStepPaymentService} from "../../../../../shared/services/rental-contract/rental-contract-step-payment.service";
 import {StepPaymentValidatorService} from "../../../../../shared/validators/step-payment-validator.service";
-import {RentalContractFeesService} from "../../../../../shared/services/rental-contract-fees.service";
+import {RentalContractFeesService} from "../../../../../shared/services/rental-contract/rental-contract-fees.service";
 import {EnumService} from "../../../../../shared/services/enum.service";
 import {GlobalAppService} from "../../../../../shared/services/global-app.service";
 import {ApiService} from "../../../../../shared/services/api.service";
-import {RentalContractSetupService} from "../../../../../shared/services/rental-contract-setup.service";
+import {RentalContractSetupService} from "../../../../../shared/services/rental-contract/rental-contract-setup.service";
 import {DatePipe} from "@angular/common";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {NotificationService} from "../../../../../shared/notification.service";
@@ -25,7 +25,7 @@ export class FixedRentStepComponent implements OnInit, OnDestroy {
 
   constructor(
     public service: RentalContractsService,
-    public stepService: StepPaymentService,
+    public stepService: RentalContractStepPaymentService,
     public stepValidatorService: StepPaymentValidatorService,
     public feeService: RentalContractFeesService,
     public enumService: EnumService,

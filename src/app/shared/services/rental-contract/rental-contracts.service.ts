@@ -12,18 +12,19 @@ import {
   TenantModel,
   RentalContractSetupModel,
   DatesInterval,
-} from "../../models/models";
+} from "../../../models/models";
 import {AbstractControl, FormBuilder, ValidatorFn, Validators} from "@angular/forms";
-import {ApiService} from "./api.service";
+import {ApiService} from "../api.service";
 import {MatDialog} from "@angular/material/dialog";
-import {EnumService} from "./enum.service";
+import {EnumService} from "../enum.service";
 import {RentalContractSetupService} from "./rental-contract-setup.service";
 import {MatSlideToggleChange} from "@angular/material/slide-toggle";
-import {GlobalAppService} from "./global-app.service";
+import {GlobalAppService} from "../global-app.service";
 import {DatePipe} from "@angular/common";
 import {RentalContractFeesService} from "./rental-contract-fees.service";
-import {DateTransformCorrectHoursPipe} from "../pipes/date-transform-correct-hours.pipe";
-import {StepPaymentService} from "./step-payment.service";
+import {DateTransformCorrectHoursPipe} from "../../pipes/date-transform-correct-hours.pipe";
+import {RentalContractStepPaymentService} from "./rental-contract-step-payment.service";
+import {RentalContractAdditionalAgreementService} from "./rental-contract-additional-agreement.service";
 
 @Injectable({
   providedIn: 'root'
@@ -40,16 +41,18 @@ export class RentalContractsService {
   updateRow$ = this.rowUpdate$.asObservable()
 
   // Form loaded trigger
-  public rentContractListButtonsActivateTrigger$ = new BehaviorSubject<boolean>(false)
+  public rentContractListIsLoaded$ = new BehaviorSubject<boolean>(false)
   public rentContractIsLoaded$ = new BehaviorSubject<boolean>(false)
 
   //Rent Contract Subscriptions
+  public rentContractFormSubscription$: Subscription = new Subscription
+
   public rentContractDateSubscription$: Subscription = new Subscription
   public rentContractPremiseSubscription$: Subscription = new Subscription
-  public rentContractTenantChangeSubscription$: Subscription = new Subscription;
-  public rentContractBrandSelectSubscription$: Subscription = new Subscription;
-  public rentContractPremiseAreaSummingSubscription$: Subscription = new Subscription;
-  public rentContractStepPaymentsValidationSubscription: Subscription = new Subscription;
+  public rentContractTenantChangeSubscription$: Subscription = new Subscription
+  public rentContractBrandSelectSubscription$: Subscription = new Subscription
+  public rentContractPremiseAreaSummingSubscription$: Subscription = new Subscription
+  public rentContractStepPaymentsValidationSubscription: Subscription = new Subscription
 
   public defaultDateMin: Date = this.dateCorrectHours.transform(new Date(new Date().getFullYear()-50, 1, 1))
   public defaultDateMax: Date = this.dateCorrectHours.transform(new Date(new Date().getFullYear()+50, 1, 1))
@@ -118,9 +121,6 @@ export class RentalContractsService {
 
   public intervalStepFixedUsedDatesArray = new BehaviorSubject<DatesInterval[]>([])
 
-
-
-
   public rentContractFieldsDisablingSubscription: Subscription = new Subscription;
 
   public premises: PremiseModel[] = []
@@ -130,10 +130,65 @@ export class RentalContractsService {
   public selectedTenantBrands: BrandModel[] = []
   public contractSetup: RentalContractSetupModel[] = []
 
+  public rentContract: BehaviorSubject<RentalContractModel> = new BehaviorSubject<RentalContractModel>({
+    CA_utilities_compensation_fee_advance_payment_day: 0,
+    CA_utilities_compensation_fee_fixed: 0,
+    CA_utilities_compensation_fee_fixed_indexation_type_fixed: 0,
+    CA_utilities_compensation_fee_post_payment_day: 0,
+    CA_utilities_compensation_fee_prepayment_or_postpayment: "",
+    CA_utilities_compensation_fixed_indexation_type: "",
+    CA_utilities_compensation_is_applicable: false,
+    CA_utilities_compensation_type: "",
+    act_of_transfer_date: new Date(),
+    brand: 0,
+    building_id: 0,
+    contracted_area: "",
+    fixed_rent_advance_payment_day: 0,
+    fixed_rent_calculation_method: "",
+    fixed_rent_calculation_period: "",
+    fixed_rent_indexation_fixed: 0,
+    fixed_rent_indexation_type: "",
+    fixed_rent_name: "",
+    fixed_rent_payment_period: "",
+    fixed_rent_per_sqm: 0,
+    fixed_rent_post_payment_day: 0,
+    fixed_rent_prepayment_or_postpayment: "",
+    fixed_rent_total_payment: 0,
+    guarantee_bank_guarantee_expiration_date: new Date(),
+    guarantee_deposit_actual_providing_date:  new Date(),
+    guarantee_deposit_amount: 0,
+    guarantee_deposit_contract_providing_date:  new Date(),
+    guarantee_deposit_coverage_number_of_periods: 0,
+    guarantee_deposit_required: false,
+    guarantee_deposit_type: "",
+    id: 0,
+    insurance_actual_providing_date:  new Date(),
+    insurance_contract_providing_date:  new Date(),
+    insurance_expiration_date: new Date(),
+    insurance_required: false,
+    premise_id: [],
+    premise_return_date:  new Date(),
+    rent_contract_expiration_date:  new Date(),
+    rent_contract_number: "",
+    rent_contract_signing_date:  new Date(),
+    rent_start_date:  new Date(),
+    stop_billing_date:  new Date(),
+    tenant_contractor_id: 0,
+    turnover_data_providing_day: 0,
+    turnover_fee: 0,
+    turnover_fee_is_applicable: false,
+    turnover_fee_payment_day: 0,
+    turnover_fee_period: "",
+    last_updated:  new Date(),
+    user_updated: ""
+  })
   public selectedPremise: string[] = []
   public selectedPremiseArea: number[] = []
   public selectedTenant = ''
   public selectedBrand = ''
+
+  public enumContractOrAA = new BehaviorSubject<string[]>([])
+  public selectedContractOrAA = new BehaviorSubject<string>('')
 
   constructor(
     public fb: FormBuilder,
@@ -141,8 +196,9 @@ export class RentalContractsService {
     public globalService: GlobalAppService,
     public setupService: RentalContractSetupService,
     public feeService: RentalContractFeesService,
-    public stepService: StepPaymentService,
+    public stepService: RentalContractStepPaymentService,
     public enumService: EnumService,
+    public additionalAgreementService: RentalContractAdditionalAgreementService,
     public modalContactDeleteDialog: MatDialog,
     public datepipe: DatePipe,
     private dateCorrectHours: DateTransformCorrectHoursPipe,
@@ -310,8 +366,8 @@ export class RentalContractsService {
     console.log('New rental contract card is initialized')
   }
 
+  //Populate card with existing contract
   populateRentalContractCard(contract: RentalContractModelExpanded) {
-    console.log(contract)
 
     for (let contract of this.rentalContractsTableExpanded){
       this.rentalContractNumbersArray.value.push(contract.rent_contract_number)}
@@ -323,6 +379,69 @@ export class RentalContractsService {
     this.rentalContractPrimarySubscription()
 
     this.form_contract.setValue({
+      id: contract.id,
+      rent_contract_number: contract.rent_contract_number,
+      rent_contract_signing_date: contract.rent_contract_signing_date,
+      rent_contract_expiration_date: contract.rent_contract_expiration_date,
+      building_id: contract.building_id,
+      premise_id: contract.premise_id,
+      contracted_area: contract.contracted_area,
+      tenant_contractor_id: contract.tenant_contractor_id,
+      brand: contract.brand,
+      act_of_transfer_date: contract.act_of_transfer_date,
+      rent_start_date: contract.rent_start_date,
+      premise_return_date: contract.premise_return_date,
+      stop_billing_date:contract.stop_billing_date,
+
+      fixed_rent_name: contract.fixed_rent_name,
+      fixed_rent_calculation_period: contract.fixed_rent_calculation_period,
+      fixed_rent_payment_period: contract.fixed_rent_payment_period,
+      fixed_rent_calculation_method: contract.fixed_rent_calculation_method,
+
+      fixed_rent_per_sqm: contract.fixed_rent_per_sqm,
+      fixed_rent_total_payment: contract.fixed_rent_total_payment,
+      fixed_rent_prepayment_or_postpayment: contract.fixed_rent_prepayment_or_postpayment,
+
+      fixed_rent_advance_payment_day: contract.fixed_rent_advance_payment_day,
+      fixed_rent_post_payment_day: contract.fixed_rent_post_payment_day,
+      fixed_rent_indexation_type: contract.fixed_rent_indexation_type,
+      fixed_rent_indexation_fixed: contract.fixed_rent_indexation_fixed,
+
+      turnover_fee_is_applicable: contract.turnover_fee_is_applicable,
+      turnover_fee: contract.turnover_fee,
+      turnover_fee_period: contract.turnover_fee_period,
+      turnover_data_providing_day: contract.turnover_data_providing_day,
+      turnover_fee_payment_day: contract.turnover_fee_payment_day,
+
+      CA_utilities_compensation_is_applicable: contract.CA_utilities_compensation_is_applicable,
+      CA_utilities_compensation_type: contract.CA_utilities_compensation_type,
+
+      CA_utilities_compensation_fixed_indexation_type: contract.CA_utilities_compensation_fixed_indexation_type,
+      CA_utilities_compensation_fee_fixed: contract.CA_utilities_compensation_fee_fixed,
+      CA_utilities_compensation_fee_fixed_indexation_type_fixed: contract.CA_utilities_compensation_fee_fixed_indexation_type_fixed,
+
+      CA_utilities_compensation_fee_prepayment_or_postpayment: contract.CA_utilities_compensation_fee_prepayment_or_postpayment,
+      CA_utilities_compensation_fee_advance_payment_day: contract.CA_utilities_compensation_fee_advance_payment_day,
+      CA_utilities_compensation_fee_post_payment_day: contract.CA_utilities_compensation_fee_post_payment_day,
+
+      guarantee_deposit_required: contract.guarantee_deposit_required,
+      guarantee_deposit_coverage_number_of_periods: contract.guarantee_deposit_coverage_number_of_periods,
+      guarantee_deposit_type: contract.guarantee_deposit_type,
+      guarantee_deposit_amount: contract.guarantee_deposit_amount,
+      guarantee_deposit_contract_providing_date: contract.guarantee_deposit_contract_providing_date,
+      guarantee_deposit_actual_providing_date: contract.guarantee_deposit_actual_providing_date,
+      guarantee_bank_guarantee_expiration_date: contract.guarantee_bank_guarantee_expiration_date,
+
+      insurance_required: contract.insurance_required,
+      insurance_contract_providing_date: contract.insurance_contract_providing_date,
+      insurance_actual_providing_date: contract.insurance_contract_providing_date,
+      insurance_expiration_date: contract.insurance_expiration_date,
+
+      last_updated: contract.last_updated,
+      user_updated: contract.user_updated,
+    })
+
+    this.rentContract.next({
       id: contract.id,
       rent_contract_number: contract.rent_contract_number,
       rent_contract_signing_date: contract.rent_contract_signing_date,
@@ -418,6 +537,11 @@ export class RentalContractsService {
     this.feeService.feeFormsEnablingSubscription()
     this.rentContractIsLoaded$.next(true)
 
+    this.enumContractOrAA.value.push('Основной договор')
+    for (let aa of this.additionalAgreementService.additionalAgreementsArray.value){
+      this.enumContractOrAA.value.push('Д/С №' +aa.additional_agreement_number)
+    }
+    this.selectedContractOrAA.next(this.enumContractOrAA.value[0])
     console.log('Rent contract is loaded')
   }
 
@@ -471,6 +595,12 @@ export class RentalContractsService {
 
   // Single field valueChanges subscription
   rentalContractPrimarySubscription(){
+
+    this.rentContractFormSubscription$ = this.form_contract.valueChanges.subscribe(
+      data => {
+        this.rentContract.next(data)
+      }
+    )
 
     this.form_contract.controls['fixed_rent_name'].valueChanges.subscribe(data=>{
       this.fixedRentNameSubject.next(data)
@@ -546,7 +676,6 @@ export class RentalContractsService {
       this.form_contract.controls['rent_contract_signing_date'].valueChanges,
       this.form_contract.controls['rent_contract_expiration_date'].valueChanges
     ]).subscribe(data => {
-        console.log(data)
         // Change date
       this.populateAvailablePremisesArray(data[0], data[1])
 
@@ -641,7 +770,6 @@ export class RentalContractsService {
       this.rentContractSigningDate$,
       this.rentContractExpirationDate$
     ]).subscribe(data=> {
-      console.log(data)
           if (data[0].length > 0) {
             this.checkIfDatesInOneInterval(
               this.intervalAvailableDatesArray.value,
@@ -655,7 +783,6 @@ export class RentalContractsService {
     this.guaranteeDepositTypeSubscription$ = this.form_contract.controls['guarantee_deposit_type'].valueChanges.subscribe(
       data =>{
         this.guaranteeDepositType$.next(data)
-        console.log(data)
         if(data == 'Cash' || data == 'Corporate_guarantee'){
           console.log('Bank guarantee disabled')
           this.form_contract.controls['guarantee_bank_guarantee_expiration_date'].disable({ emitEvent: false })
@@ -671,7 +798,6 @@ export class RentalContractsService {
 
     this.rentContractFieldsDisablingSubscription = this.globalService.editCardTrigger$
       .subscribe(data=>{
-        console.log(data)
         if (!data){
           console.log('Global trigger form disabled')
           this.form_contract.disable({ emitEvent: false })
@@ -711,6 +837,56 @@ export class RentalContractsService {
 
   // Reset Rental contract fees
   rentContractReset(){
+    this.rentContract.next({CA_utilities_compensation_fee_advance_payment_day: 0,
+      CA_utilities_compensation_fee_fixed: 0,
+      CA_utilities_compensation_fee_fixed_indexation_type_fixed: 0,
+      CA_utilities_compensation_fee_post_payment_day: 0,
+      CA_utilities_compensation_fee_prepayment_or_postpayment: "",
+      CA_utilities_compensation_fixed_indexation_type: "",
+      CA_utilities_compensation_is_applicable: false,
+      CA_utilities_compensation_type: "",
+      act_of_transfer_date: new Date(),
+      brand: 0,
+      building_id: 0,
+      contracted_area: "",
+      fixed_rent_advance_payment_day: 0,
+      fixed_rent_calculation_method: "",
+      fixed_rent_calculation_period: "",
+      fixed_rent_indexation_fixed: 0,
+      fixed_rent_indexation_type: "",
+      fixed_rent_name: "",
+      fixed_rent_payment_period: "",
+      fixed_rent_per_sqm: 0,
+      fixed_rent_post_payment_day: 0,
+      fixed_rent_prepayment_or_postpayment: "",
+      fixed_rent_total_payment: 0,
+      guarantee_bank_guarantee_expiration_date: new Date(),
+      guarantee_deposit_actual_providing_date:  new Date(),
+      guarantee_deposit_amount: 0,
+      guarantee_deposit_contract_providing_date:  new Date(),
+      guarantee_deposit_coverage_number_of_periods: 0,
+      guarantee_deposit_required: false,
+      guarantee_deposit_type: "",
+      id: 0,
+      insurance_actual_providing_date:  new Date(),
+      insurance_contract_providing_date:  new Date(),
+      insurance_expiration_date: new Date(),
+      insurance_required: false,
+      premise_id: [],
+      premise_return_date:  new Date(),
+      rent_contract_expiration_date:  new Date(),
+      rent_contract_number: "",
+      rent_contract_signing_date:  new Date(),
+      rent_start_date:  new Date(),
+      stop_billing_date:  new Date(),
+      tenant_contractor_id: 0,
+      turnover_data_providing_day: 0,
+      turnover_fee: 0,
+      turnover_fee_is_applicable: false,
+      turnover_fee_payment_day: 0,
+      turnover_fee_period: "",
+      last_updated:  new Date(),
+      user_updated: ""})
 
     this.tenantContractors = []
     this.premises = []
@@ -722,6 +898,9 @@ export class RentalContractsService {
     this.feeService.oneTimeFeeContractArray.next([])
     this.feeService.utilityFeeContractArray.next([])
     this.stepService.fixedRentStepArray.next([])
+
+    this.enumContractOrAA.next([])
+    this.selectedContractOrAA.next('')
 
     this.feeService.periodicalFeeTabs.clear()
     this.feeService.oneTimeFeeTabs.clear()
@@ -736,11 +915,9 @@ export class RentalContractsService {
     this.stepService.fixedRentStepForm.reset()
   }
 
-  // Reset Rental contract fees
+  // Reset Rental contract dates limits
   rentContractDatesFormLimitsReset(){
     console.log('Dates limits reset')
-    // this.rentContractSigningDate$.next(this.defaultDateMin)
-    // this.rentContractExpirationDate$.next(this.defaultDateMax)
     this.rentContractSigningDateMin$.next(this.defaultDateMin)
     this.rentContractSigningDateMax$.next(this.defaultDateMax)
     this.rentContractExpirationDateMin$.next(this.defaultDateMin)
@@ -761,6 +938,7 @@ export class RentalContractsService {
     this.guaranteeDepositProvidingDateMax$.next(this.defaultDateMax)
   }
 
+  // Reset Rental contract dates form fields
   rentContractDatesFormReset(){
     console.log('Secondary date forms are reset')
     this.form_contract.controls['act_of_transfer_date'].reset()
@@ -775,6 +953,27 @@ export class RentalContractsService {
     this.form_contract.controls['insurance_expiration_date'].reset()
   }
 
+  // Rental contract dates validator
+  dateFilter = (date: Date | null): boolean => {
+    if (!date) {
+      return true
+    } else {
+      if (this.intervalUsedDatesArray.value.length>0)
+      { let i = true
+        for (let interval of this.intervalUsedDatesArray.value)
+        {
+          if (date >= interval.startDate
+            && date <= interval.expirationDate) {
+            i = false
+          }
+        }
+        return i
+      }
+      else return true
+    }
+  }
+
+  // Rental contract dates enabler
   rentContractDatesEnable(){
     console.log('Secondary date forms are enabled')
     this.form_contract.controls['act_of_transfer_date'].enable({ emitEvent: false })
@@ -789,6 +988,7 @@ export class RentalContractsService {
     this.form_contract.controls['insurance_expiration_date'].enable({ emitEvent: false })
   }
 
+  // Rental contract dates disabler
   rentContractDatesDisable(){
     console.log('Secondary date forms are disabled')
     this.form_contract.controls['act_of_transfer_date'].disable({ emitEvent: false })
@@ -803,6 +1003,7 @@ export class RentalContractsService {
     this.form_contract.controls['insurance_expiration_date'].disable({ emitEvent: false })
   }
 
+  // Rental contract available dates intervals calculation
   populateAvailableDatesIntervalArray(premise_IdsArray: number[]){
     console.log('Available dates calculation started')
 
@@ -889,6 +1090,46 @@ export class RentalContractsService {
     console.log('Allowed intervals are calculated', this.intervalAvailableDatesArray.value)
   }
 
+  // Rental contract available dates check
+  checkIfDatesInOneInterval(
+    intervalAvailableDatesArray: DatesInterval[],
+    rentContractSigningDate: Date,
+    rentContractExpirationDate: Date
+  ){
+    console.log('rentContractDatesInOneInterval$ calculation...')
+    this.rentContractDatesInOneInterval$.next(false)
+    let i = 0
+    if (
+      rentContractSigningDate > this.defaultDateMin
+      && rentContractExpirationDate < this.defaultDateMax
+      && rentContractSigningDate !=null
+      && rentContractExpirationDate !=null
+    ) {
+      for (let interval of intervalAvailableDatesArray) {
+        if (rentContractSigningDate >= interval.startDate
+          && rentContractSigningDate <= interval.expirationDate
+          && rentContractExpirationDate >= interval.startDate
+          && rentContractExpirationDate <= interval.expirationDate) {
+          i = i + 1
+        }
+      }
+    }
+    if (i > 0){
+      {console.log('Signing and Expiration dates are in one interval')
+        this.rentContractDatesInOneInterval$.next(true)
+        this.rentContractDatesEnable()
+      }
+    }
+    else {
+      console.log('Signing and Expiration dates are NOT in one interval')
+      this.rentContractDatesInOneInterval$.next(false)
+      this.rentContractDatesFormReset()
+      this.rentContractDatesDisable()
+    }
+
+  }
+
+  // Rental contract available premises array calculation
   populateAvailablePremisesArray(signingDate : Date | null, expirationDate: Date | null){
     this.availablePremises.next([])
     let unavailablePremises: number[] = []
@@ -936,57 +1177,14 @@ export class RentalContractsService {
           }
       }
     }
-    console.log(unavailablePremises)
     for (let premise of this.premises){
       if (!unavailablePremises.includes(premise.id)){
         this.availablePremises.value.push(premise)
       }
     }
-    console.log(this.availablePremises.value)
   }
 
-  checkIfDatesInOneInterval(
-    intervalAvailableDatesArray: DatesInterval[],
-    rentContractSigningDate: Date,
-    rentContractExpirationDate: Date
-  ){
-    console.log('rentContractDatesInOneInterval$ calculation...')
-    console.log(intervalAvailableDatesArray)
-    console.log(rentContractSigningDate)
-    console.log(rentContractExpirationDate)
-    this.rentContractDatesInOneInterval$.next(false)
-    let i = 0
-    if (
-      rentContractSigningDate > this.defaultDateMin
-      && rentContractExpirationDate < this.defaultDateMax
-      && rentContractSigningDate !=null
-      && rentContractExpirationDate !=null
-    ) {
-      for (let interval of intervalAvailableDatesArray) {
-        if (rentContractSigningDate >= interval.startDate
-          && rentContractSigningDate <= interval.expirationDate
-          && rentContractExpirationDate >= interval.startDate
-          && rentContractExpirationDate <= interval.expirationDate) {
-          i = i + 1
-        }
-        console.log(i)
-      }
-    }
-      if (i > 0){
-        {console.log('Signing and Expiration dates are in one interval')
-          this.rentContractDatesInOneInterval$.next(true)
-          this.rentContractDatesEnable()
-        }
-      }
-      else {
-      console.log('Signing and Expiration dates are NOT in one interval')
-      this.rentContractDatesInOneInterval$.next(false)
-      this.rentContractDatesFormReset()
-      this.rentContractDatesDisable()
-    }
-
-  }
-
+  // Rental contract deposit coverage term calculation
   depositCoverageCalculation(contracted_area: number, fixed_rent_per_sqm: number,  fixed_rent_total_payment: number,
                              fixed_rent_calculation_period: string, guarantee_deposit_amount: number,
                              fixed_rent_calculation_method: string){
@@ -1032,7 +1230,6 @@ export class RentalContractsService {
     }
   }
 
-
   //Dynamically update existing Table row
   updateTableRow(data: RentalContractModel, premise: string[], tenant: string, brand: string) {
     let resultContract: RentalContractModelExpanded = {
@@ -1056,7 +1253,7 @@ export class RentalContractsService {
     this.rowCreate$.next(resultContract)
     }
 
-
+    // Toggle change event handler - is turnover fee applicable
   turnoverFeeIsApplicableChange($event: MatSlideToggleChange){
     this.turnoverFeeIsApplicable$.next($event.checked)
     if (this.turnoverFeeIsApplicable$.value){
@@ -1067,16 +1264,20 @@ export class RentalContractsService {
     }
 
   }
+
+  // Toggle change event handler - is common areas utilities compensation applicable
   caUtilitiesCompensationIsApplicableChange($event: MatSlideToggleChange){
     this.caUtilitiesCompensationIsApplicable$.next($event.checked)}
+
+  // Toggle change event handler - is guarantee deposit required
   guaranteeDepositRequiredChange($event: MatSlideToggleChange){
     this.guaranteeDepositIsRequired$.next($event.checked)
   }
+
+  // Toggle change event handler - is insurance required
   insuranceRequiredChange($event: MatSlideToggleChange){
     this.insuranceIsRequired$.next($event.checked)
   }
-
-
 
   // Populate form with brand names
   getSelectedBrands(tenant_id: number): BrandModel[] | void {
@@ -1091,8 +1292,18 @@ export class RentalContractsService {
                 return this.selectedTenantBrands
               }}}}}}}
 
+  // Calculation of premise area form field
   premiseAreaCalculation(premise_id: number[], premises: PremiseModel[])
   {
+
+    function areaSumming(area: number[]){
+    let sum = 0
+    for (let premise of area){
+      sum = sum + Number(premise)
+    }
+    return sum
+  }
+
     this.selectedPremiseArea = []
     this.selectedPremise = []
     this.form_contract.controls['contracted_area'].setValue('')
@@ -1102,7 +1313,7 @@ export class RentalContractsService {
           if (premise.id === id) {
             this.selectedPremiseArea.push(premise.measured_area)
             this.selectedPremise.push(premise.number)
-            this.form_contract.controls['contracted_area'].setValue(this.areaSumming(this.selectedPremiseArea))
+            this.form_contract.controls['contracted_area'].setValue(areaSumming(this.selectedPremiseArea))
           }
         }
       }
@@ -1111,85 +1322,75 @@ export class RentalContractsService {
   }
   }
 
-  areaSumming(area: number[]){
-    let sum = 0
-    for (let premise of area){
-      sum = sum + Number(premise)
-    }
-    return sum
-  }
-
-  // Validators
-
-  dateFilter = (date: Date | null): boolean => {
-    if (!date) {
-      return true
-    } else {
-      if (this.intervalUsedDatesArray.value.length>0)
-      { let i = true
-        for (let interval of this.intervalUsedDatesArray.value)
-        {
-          if (date >= interval.startDate
-            && date <= interval.expirationDate) {
-            i = false
-          }
-        }
-        return i
-      }
-      else return true
-    }
-  }
-
+  // Rental contract signing date reset
   clearRentContractSigningDate(event: MouseEvent) {
     event.stopPropagation();
     this.form_contract.controls['rent_contract_signing_date'].reset('')
     this.rentContractSigningDate$.next(this.defaultDateMin)
   }
 
+  // Rental contract expiration date reset
   clearRentContractExpirationDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['rent_contract_expiration_date'].reset('')
     this.rentContractExpirationDate$.next(this.defaultDateMax)
   }
 
+  // Rental contract act of transfer date reset
   clearRentContractActOfTransferDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['act_of_transfer_date'].reset('')
   }
+
+  // Rental contract rent start date reset
   clearRentContractRentStartDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['rent_start_date'].reset('')
   }
+
+  // Rental contract premise return date reset
   clearRentContractPremiseReturnDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['premise_return_date'].reset('')
   }
+
+  // Rental contract stop billing date reset
   clearRentContractStopBillingDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['stop_billing_date'].reset('')
   }
+
+  // Rental contract guarantee deposit providing date reset
   clearRentContractGuaranteeDepositContractProvidingDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['guarantee_deposit_contract_providing_date'].reset('')
   }
+
+  // Rental contract guarantee deposit providing date reset
   clearRentContractGuaranteeBankGuaranteeExpirationDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['guarantee_bank_guarantee_expiration_date'].reset('')
   }
+
+  // Rental contract insurance providing date reset
   clearRentContractInsuranceContractProvidingDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['insurance_contract_providing_date'].reset('')
   }
+
+  // Rental contract insurance providing date reset
   clearRentContractInsuranceExpirationDate(event: MouseEvent){
     event.stopPropagation();
     this.form_contract.controls['insurance_expiration_date'].reset('')
   }
 
+  // Rental contract one time fee payment date reset
   clearRentContractOneTimeFeePaymentDate(event: MouseEvent, i: number){
     event.stopPropagation();
     this.feeService.oneTimeFeeTabs.controls[i].get('one_time_fee_contract_payment_date')?.reset('')
   }
 
+  // Rental contract dates format changer
   changeDateFormatFromApi(contract: RentalContractModel){
     if (contract.rent_contract_signing_date){contract.rent_contract_signing_date = this.dateCorrectHours.transform(contract.rent_contract_signing_date)}
     if (contract.rent_contract_expiration_date){contract.rent_contract_expiration_date = this.dateCorrectHours.transform(contract.rent_contract_expiration_date)}
@@ -1207,6 +1408,7 @@ export class RentalContractsService {
     return contract
   }
 
+  // Validator - available contracts number
   inputRentalContractNumber(): ValidatorFn {
     return (control: AbstractControl): { [key: string]: boolean } | null => {
       if (
@@ -1219,5 +1421,7 @@ export class RentalContractsService {
       return null;
     };
   }
+
+
 
 }

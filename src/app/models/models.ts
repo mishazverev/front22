@@ -229,38 +229,42 @@ export interface AdditionalAgreementModel{
   additional_agreement_signing_date: Date
   additional_agreement_expiration_date: Date
 
-  // premise_id: number[]
+  premise_id: number[]
   contracted_area: number
   tenant_contractor_id: number
-  brand: string
+  brand: number
 
-  // act_of_transfer_date: Date
   rent_start_date: Date
-  premise_return_date: Date
   stop_billing_date: Date
 
   fixed_rent_calculation_period: string
   fixed_rent_payment_period: string
+  fixed_rent_calculation_method: string
 
   fixed_rent_per_sqm: number
-
   fixed_rent_total_payment: number
+  fixed_rent_prepayment_or_postpayment: string
+
   fixed_rent_advance_payment_day: number
   fixed_rent_post_payment_day: number
   fixed_rent_indexation_type: string
   fixed_rent_indexation_fixed: number
 
+  turnover_fee_is_applicable: boolean
   turnover_fee: number
-  turnover_fee_period: number
+  turnover_fee_period: string
   turnover_data_providing_day: number
   turnover_fee_payment_day: number
 
+  CA_utilities_compensation_is_applicable: boolean
   CA_utilities_compensation_type: string
-  CA_utilities_compensation_fixed_indexation_type: string
 
+  CA_utilities_compensation_fixed_indexation_type: string
   CA_utilities_compensation_fee_fixed: number
   CA_utilities_compensation_fee_fixed_indexation_type_fixed: number
-  CA_utilities_compensation_fee_payment_day: number
+  CA_utilities_compensation_fee_prepayment_or_postpayment: string
+  CA_utilities_compensation_fee_advance_payment_day: number
+  CA_utilities_compensation_fee_post_payment_day: number
 
   guarantee_deposit_required: boolean
   guarantee_deposit_coverage_number_of_periods: number

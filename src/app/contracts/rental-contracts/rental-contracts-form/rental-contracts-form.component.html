@@ -1,26 +1,46 @@
-<div [formGroup]="service.form_contract">
-  <input type="hidden" formControlName="id">
-<mat-grid-list cols="2" rowHeight="45px">
-  <mat-grid-tile>
+<div>
+<mat-grid-list cols="3" rowHeight="75px">
+  <mat-grid-tile [colspan]="1">
     <div class="header_tile">
-      <h2 mat-dialog-title>{{service.form_contract.controls['id'].value?"Изменить договор аренды":"Добавить договор аренды"}}</h2>
+      <h2 mat-dialog-title>{{service.rentContract.value['id']?"Изменить договор аренды №":"Добавить договор аренды"}}
+        {{service.rentContract.value['rent_contract_number']}}</h2>
     </div>
   </mat-grid-tile>
 
   <mat-grid-tile [colspan]="1">
+    <mat-form-field appearance="fill">
+      <mat-label></mat-label>
+      <mat-select [value]="service.selectedContractOrAA.value">
+        <mat-option *ngFor="let item of service.enumContractOrAA.value"
+                    [value]="service.enumContractOrAA.value[0]">
+                    {{item}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-grid-tile>
+
+  <mat-grid-tile [colspan]="1">
   <div class="toggle_tile">
-    <mat-slide-toggle
-      *ngIf="service.form_contract.controls['id'].value"
-      [checked]="globalService.editCardTrigger$.value"
-      (change)="globalService.editCardToggle($event)"
-    > Внести изменения
-    </mat-slide-toggle>
+    <button mat-raised-button
+            [disabled] = '!globalService.editCardTrigger$.value || !service.rentContractIsLoaded$.value'
+
+    >Добавить д/с
+      <mat-icon>settings</mat-icon>
+    </button>
+
     <button mat-raised-button
             [disabled] = '!globalService.editCardTrigger$.value || !service.rentContractIsLoaded$.value'
             (click)="contractSetupOpen()"
             >
       <mat-icon>settings</mat-icon>
     </button>
+
+    <mat-slide-toggle
+      *ngIf="service.form_contract.controls['id'].value"
+      [checked]="globalService.editCardTrigger$.value"
+      (change)="globalService.editCardToggle($event)"
+    >
+    </mat-slide-toggle>
   </div>
   </mat-grid-tile>
 </mat-grid-list>
@@ -30,8 +50,8 @@
 
   <div *ngIf="service.rentContractIsLoaded$.value == true" [formGroup]="service.form_contract">
   <mat-grid-list cols="3" rowHeight="75px">
-
-  <mat-grid-tile>
+    <input type="hidden" formControlName="id">
+    <mat-grid-tile>
     <mat-form-field appearance="fill">
       <mat-label>Номер договора</mat-label>
       <input matInput formControlName="rent_contract_number" autocomplete="off">
@@ -346,10 +366,6 @@
          appearance="fill">
          <mat-label>% ежегодной индексации</mat-label>
          <input matInput placeholder='% ежегодной индексации' formControlName="fixed_rent_indexation_fixed" autocomplete="off">
-
-         <mat-icon matSuffix *ngIf="stepService.fixedRentStepArray.value.length > 0" color="accent" (click)="this.stepService.fixedRentIndexationStepOpen() ">timeline</mat-icon>
-         <mat-icon matSuffix *ngIf="stepService.fixedRentStepArray.value.length == 0 && globalService.editCardTrigger$.value" (click)="this.stepService.fixedRentIndexationStepOpen()">timeline</mat-icon>
-
          <mat-hint>{{service.fixedRentNameSubject.value}} индексируется ежегодно на %</mat-hint>
          <mat-error *ngIf="service.form_contract.controls['fixed_rent_indexation_fixed'].hasError('pattern')">
            Введите число с 2 знаками после точки
@@ -363,9 +379,6 @@
          appearance="fill">
          <mat-label>% платы от товарооборота</mat-label>
          <input matInput placeholder='Какой % учитывается при расчете платы от товарооборота?' formControlName="turnover_fee" autocomplete="off">
-
-         <mat-icon matSuffix *ngIf="stepService.fixedRentStepArray.value.length > 0" color="accent" (click)="this.stepService.fixedRentStepOpen()">timeline</mat-icon>
-         <mat-icon matSuffix *ngIf="stepService.fixedRentStepArray.value.length == 0 && globalService.editCardTrigger$.value" (click)="this.stepService.fixedRentStepOpen()">timeline</mat-icon>
 
          <mat-hint>Какой % учитывается при расчете платы от ТО?</mat-hint>
          <mat-error *ngIf="service.form_contract.controls['turnover_fee'].hasError('pattern')">

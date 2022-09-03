@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {RentalContractsService} from "../../../../shared/services/rental-contracts.service";
+import {RentalContractsService} from "../../../../shared/services/rental-contract/rental-contracts.service";
 import {ENTER} from "@angular/cdk/keycodes";
 import {GlobalAppService} from "../../../../shared/services/global-app.service";
 import {MatDialogRef} from "@angular/material/dialog";
@@ -19,7 +19,7 @@ import {EnumService} from "../../../../shared/services/enum.service";
 import {DatePipe} from "@angular/common";
 import {combineLatest, Subscription} from "rxjs";
 import {FormArray} from "@angular/forms";
-import {RentalContractFeesService} from "../../../../shared/services/rental-contract-fees.service";
+import {RentalContractFeesService} from "../../../../shared/services/rental-contract/rental-contract-fees.service";
 
 
 @Component({

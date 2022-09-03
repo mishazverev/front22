@@ -10,17 +10,20 @@ import {MatSort} from "@angular/material/sort";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {NotificationService} from "../../../shared/notification.service";
-import {RentalContractsFormComponent} from "../rental-contracts-form/rental-contracts-form.component";
-import {RentalContractsService} from "../../../shared/services/rental-contracts.service";
-import {RentalContractSetupService} from "../../../shared/services/rental-contract-setup.service";
+import {RentalContractsService} from "../../../shared/services/rental-contract/rental-contracts.service";
+import {RentalContractSetupService} from "../../../shared/services/rental-contract/rental-contract-setup.service";
 
 import {concatMap, map, tap} from "rxjs/operators";
 import {BehaviorSubject, forkJoin, Subscription, zip} from "rxjs";
 import {RentalContractsSetupComponent} from "../rental-contracts-setup/rental-contracts-setup.component";
 import {GlobalAppService} from "../../../shared/services/global-app.service";
 import {DateTransformCorrectHoursPipe} from "../../../shared/pipes/date-transform-correct-hours.pipe";
-import {RentalContractFeesService} from "../../../shared/services/rental-contract-fees.service";
-import {StepPaymentService} from "../../../shared/services/step-payment.service";
+import {RentalContractFeesService} from "../../../shared/services/rental-contract/rental-contract-fees.service";
+import {RentalContractStepPaymentService} from "../../../shared/services/rental-contract/rental-contract-step-payment.service";
+import {
+  RentalContractAdditionalAgreementService
+} from "../../../shared/services/rental-contract/rental-contract-additional-agreement.service";
+import {RentalContractsFormComponent} from "../rental-contracts-form/rental-contracts-form.component";
 
 
 @Component({
@@ -35,9 +38,10 @@ export class RentalContractsListComponent implements OnInit {
     private dialog: MatDialog,
     public service:RentalContractsService,
     public feeService: RentalContractFeesService,
-    public stepService: StepPaymentService,
+    public stepService: RentalContractStepPaymentService,
     private globalService: GlobalAppService,
     private setupService: RentalContractSetupService,
+    private additionalAgreementService: RentalContractAdditionalAgreementService,
     private notificationService: NotificationService,
     private dateCorrectHours: DateTransformCorrectHoursPipe
   ) {}
@@ -60,7 +64,7 @@ export class RentalContractsListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
   ngOnInit(): void {
-    this.service.rentContractListButtonsActivateTrigger$.next(false)
+    this.service.rentContractListIsLoaded$.next(false)
 
     this.numberOfContracts = -1
     this.numberOfPremisesLoaded$.next(0)
@@ -141,7 +145,7 @@ export class RentalContractsListComponent implements OnInit {
             && data[1] == this.numberOfContracts
             && data[2] == this.numberOfContracts
           ){
-            this.service.rentContractListButtonsActivateTrigger$.next(true)
+            this.service.rentContractListIsLoaded$.next(true)
             console.log('Rental contracts list loading completed')
           }
         })}
@@ -202,7 +206,8 @@ export class RentalContractsListComponent implements OnInit {
       this.apiService.getRentalContractPeriodicalFeeByRentalContract(contract.id),
       this.apiService.getRentalContractOneTimeFeeByRentalContract(contract.id),
       this.apiService.getRentalContractUtilityFeeByRentalContract(contract.id),
-      this.apiService.getFixedRentFeeStepsByRentalContract(contract.id)
+      this.apiService.getFixedRentFeeStepsByRentalContract(contract.id),
+      this.apiService.getAdditionalAgreementsByRentalContract(contract.id)
     ]
     )
     retrieveTenantsPremises.pipe(
@@ -215,9 +220,9 @@ export class RentalContractsListComponent implements OnInit {
         this.feeService.utilityFeeContractArray.next(data[5])
         if (data[6].length > 0){
           this.stepService.fixedRentStepArray.next(this.stepService.stepsLoader(data[6]))
-          console.log(contract.id)
-          console.log(data[3])
-          console.log(data[6])
+        }
+        if (data[7].length >0){
+          this.additionalAgreementService.additionalAgreementsArray.next(data[7])
         }
       })
     ).subscribe(() => {

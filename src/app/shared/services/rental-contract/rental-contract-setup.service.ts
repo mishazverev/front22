@@ -4,14 +4,14 @@ import {
   RentalContractOneTimeFeeSetupModel,
   RentalContractPeriodicalFeeSetupModel,
   RentalContractSetupModel, RentalContractUtilityFeeSetupModel
-} from "../../models/models";
+} from "../../../models/models";
 import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {ApiService} from "./api.service";
+import {ApiService} from "../api.service";
 import {MatDialog} from "@angular/material/dialog";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {MatSlideToggleChange} from "@angular/material/slide-toggle";
 import {MatChipInputEvent} from "@angular/material/chips";
-import {GlobalAppService} from "./global-app.service";
+import {GlobalAppService} from "../global-app.service";
 
 @Injectable({
   providedIn: 'root'

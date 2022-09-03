@@ -1,0 +1,237 @@
+import { Injectable } from '@angular/core';
+import {
+  FixedRentStepModel,
+  RentalContractModel,
+  RentalContractOneTimeFeeModel,
+  RentalContractPeriodicalFeeModel, RentalContractUtilityFeeModel
+} from "../../../models/models";
+import {tap} from "rxjs/operators";
+import {RentalContractsService} from "./rental-contracts.service";
+import {RentalContractStepPaymentService} from "./rental-contract-step-payment.service";
+import {RentalContractFeesService} from "./rental-contract-fees.service";
+import {EnumService} from "../enum.service";
+import {GlobalAppService} from "../global-app.service";
+import {ApiService} from "../api.service";
+import {RentalContractSetupService} from "./rental-contract-setup.service";
+import {RentalContractAdditionalAgreementService} from "./rental-contract-additional-agreement.service";
+import {DatePipe} from "@angular/common";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
+import {NotificationService} from "../../notification.service";
+import {RentalContractFrameComponent} from "../../../contracts/rental-contracts/rental-contract-frame/rental-contract-frame.component";
+
+
+@Injectable({
+  providedIn: 'root'
+})
+
+export class RentalContractFrameService {
+
+  constructor
+  (
+    public service: RentalContractsService,
+    public stepService: RentalContractStepPaymentService,
+    public feeService: RentalContractFeesService,
+    public enumService: EnumService,
+    public globalService: GlobalAppService,
+    public apiService: ApiService,
+    public setupService: RentalContractSetupService,
+    public additionalAgreementService: RentalContractAdditionalAgreementService,
+    private datepipe: DatePipe,
+    public dialogRef: MatDialogRef<RentalContractFrameComponent>,
+    private dialog: MatDialog,
+    private notificationService: NotificationService,
+
+  ) { }
+
+  //Contract fees submitting
+  submitFees(
+    rentalContractData: RentalContractModel,
+    periodicalFeeData: RentalContractPeriodicalFeeModel[],
+    oneTimeFeeData: RentalContractOneTimeFeeModel[],
+    utilityFeeData: RentalContractUtilityFeeModel[])
+  {
+    for (let fee of periodicalFeeData){
+      fee.rent_contract_id = rentalContractData.id
+      fee.last_updated = new Date
+      if (!fee.id){
+        this.apiService.createRentalContractPeriodicalFee(fee).subscribe(
+          ()=> console.log('Periodical fee is created')
+        )
+      }
+      if (fee.id){
+        this.apiService.updateRentalContractPeriodicalFee(fee.id, fee).subscribe(
+          ()=> console.log('Periodical fee is updated')
+        )
+      }
+    }
+    for (let fee of oneTimeFeeData){
+      fee.rent_contract_id = rentalContractData.id
+      fee.last_updated = new Date
+      // @ts-ignore
+      fee.one_time_fee_contract_payment_date = this.datepipe.transform(fee.one_time_fee_contract_payment_date, 'YYYY-MM-dd')
+
+      if (!fee.id){
+        this.apiService.createRentalContractOneTimeFee(fee).subscribe(
+          ()=> console.log('One time fee is created')
+        )
+      }
+      if (fee.id){
+        this.apiService.updateRentalContractOneTimeFee(fee.id, fee).subscribe(
+          ()=> console.log('One time fee is updated')
+        )
+      }
+    }
+    for (let fee of utilityFeeData){
+      fee.rent_contract_id = rentalContractData.id
+      fee.last_updated = new Date
+      if (!fee.id){
+        this.apiService.createRentalContractUtilityFee(fee).subscribe(
+          ()=> console.log('Utility fee is created')
+        )
+      }
+      if (fee.id){
+        this.apiService.updateRentalContractUtilityFee(fee.id, fee).subscribe(
+          ()=> console.log('Utility fee is updated')
+        )
+      }
+    }
+  }
+
+  submitStepPayments(
+    rentalContractData: RentalContractModel,
+    fixedRentStepData: FixedRentStepModel[],
+  ) {
+
+    fixedRentStepData.forEach((step, index) => {
+      step.rent_contract_id = rentalContractData.id
+      step.last_updated = new Date()
+      // @ts-ignore
+      step.start_date = this.datepipe.transform(step.start_date, 'YYYY-MM-dd')
+      // @ts-ignore
+      step.expiration_date = this.datepipe.transform(step.expiration_date, 'YYYY-MM-dd')
+      if (!step.id) {
+        this.apiService.createFixedRentFeeStep(step).subscribe(
+          () => console.log('New fixed rent fee step is created')
+        )
+      }
+      if (step.id) {
+        this.apiService.updateFixedRentFeeStep(step.id, step).subscribe(
+          () => console.log('New fixed rent fee step is created')
+        )
+      }
+    })
+    this.stepService.fixedRentStepDeletedArray.value.forEach((step) => {
+        console.log(step)
+        this.apiService.deleteFixedRentFeeStep(step.id).subscribe()
+        this.stepService.fixedRentStepDeletedArray.next([])
+      }
+    )
+
+  }
+
+  //Contract card submitting
+  onSubmit(){
+    const rentalContractData: RentalContractModel = this.service.form_contract.value
+    const periodicalFeeData: RentalContractPeriodicalFeeModel[] = this.feeService.periodicalFeeTabs.getRawValue()
+    const oneTimeFeeData: RentalContractOneTimeFeeModel[] = this.feeService.oneTimeFeeTabs.getRawValue()
+    const utilityFeeData: RentalContractUtilityFeeModel[] = this.feeService.utilityFeeTabs.getRawValue()
+    const fixedRentStepData: FixedRentStepModel[] = this.stepService.fixedRentStepFormLines.getRawValue()
+
+    console.log(rentalContractData)
+    rentalContractData.last_updated =  new Date()
+
+    // @ts-ignore
+    rentalContractData.rent_contract_signing_date = this.datepipe.transform(rentalContractData.rent_contract_signing_date, 'YYYY-MM-dd')
+    //@ts-ignore
+    rentalContractData.rent_contract_expiration_date = this.datepipe.transform(rentalContractData.rent_contract_expiration_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.act_of_transfer_date = this.datepipe.transform(rentalContractData.act_of_transfer_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.rent_start_date = this.datepipe.transform(rentalContractData.rent_start_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.premise_return_date = this.datepipe.transform(rentalContractData.premise_return_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.stop_billing_date = this.datepipe.transform(rentalContractData.stop_billing_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.guarantee_deposit_contract_providing_date = this.datepipe.transform(rentalContractData.guarantee_deposit_contract_providing_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.guarantee_deposit_actual_providing_date = this.datepipe.transform(rentalContractData.guarantee_deposit_actual_providing_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.guarantee_bank_guarantee_expiration_date = this.datepipe.transform(rentalContractData.guarantee_bank_guarantee_expiration_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.insurance_contract_providing_date = this.datepipe.transform(rentalContractData.insurance_contract_providing_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.insurance_actual_providing_date = this.datepipe.transform(rentalContractData.insurance_actual_providing_date, 'YYYY-MM-dd')
+    // @ts-ignore
+    rentalContractData.insurance_expiration_date = this.datepipe.transform(rentalContractData.insurance_expiration_date, 'YYYY-MM-dd')
+
+
+    if (rentalContractData.id){
+      this.apiService.updateRentalContract(rentalContractData.id, rentalContractData)
+        .pipe(
+          tap(
+            () => {
+              this.submitFees(
+                rentalContractData,
+                periodicalFeeData,
+                oneTimeFeeData,
+                utilityFeeData)
+              this.submitStepPayments(
+                rentalContractData,
+                fixedRentStepData,
+              )
+            }
+          )
+        )
+        .subscribe(data => {
+          // @ts-ignore
+          const contract: RentalContractModel = data
+          this.service.changeDateFormatFromApi(contract)
+          this.service.updateTableRow(contract, this.service.selectedPremise, this.service.selectedTenant, this.service.selectedBrand)
+          this.service.form_contract.reset();
+          this.notificationService.success('Договор успешно обновлён');
+          this.dialog.closeAll()
+          this.dialogRef.close()
+        })
+    } else {
+      this.apiService.createRentalContract(rentalContractData)
+        .subscribe(data=>{
+          // @ts-ignore
+          rentalContractData.id = data.id
+          this.submitFees(
+            rentalContractData,
+            periodicalFeeData,
+            oneTimeFeeData,
+            utilityFeeData)
+          this.submitStepPayments(
+            rentalContractData,
+            fixedRentStepData,
+          )
+          // @ts-ignore
+          const contract: RentalContractModel = data
+          this.service.changeDateFormatFromApi(contract)
+          this.service.newTableRow(contract, this.service.selectedPremise, this.service.selectedTenant, this.service.selectedBrand)
+          this.service.form_contract.reset()
+          this.notificationService.success('Договор успешно создан');
+          this.dialogRef.close()
+        })
+    }
+  }
+
+// TBD
+//   contractSetupOpen(){
+//     const dialogConfig = new MatDialogConfig()
+//     dialogConfig.disableClose = false
+//     dialogConfig.autoFocus = true
+//     dialogConfig.width = '1400px'
+//     dialogConfig.maxHeight = '90%'
+//     this.dialog.open(RentalContractsFormSetupComponent, dialogConfig)
+//   }
+
+  //Contract card closing
+  onClose() {
+    this.dialogRef.close()
+  }
+
+}
+

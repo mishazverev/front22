@@ -4,22 +4,25 @@ import {DatePipe} from "@angular/common";
 import {MatDialog, MatDialogConfig, MatDialogRef} from "@angular/material/dialog";
 import {NotificationService} from "../../../shared/notification.service";
 import {GlobalAppService} from "../../../shared/services/global-app.service";
-import {RentalContractsService} from "../../../shared/services/rental-contracts.service";
+import {RentalContractsService} from "../../../shared/services/rental-contract/rental-contracts.service";
 import {combineLatest, combineLatestWith, tap} from "rxjs/operators";
 import {
   RentalContractModel,
   RentalContractOneTimeFeeModel,
   RentalContractPeriodicalFeeModel,
   RentalContractUtilityFeeModel,
-  FixedRentStepModel
+  FixedRentStepModel, FixedRentIndexationStepModel, TurnoverFeeStepModel
 } from "../../../models/models";
 import {EnumService} from "../../../shared/services/enum.service";
-import {RentalContractSetupService} from "../../../shared/services/rental-contract-setup.service";
+import {RentalContractSetupService} from "../../../shared/services/rental-contract/rental-contract-setup.service";
 import {ENTER} from "@angular/cdk/keycodes";
 import {RentalContractsFormSetupComponent} from "./rental-contracts-form-setup/rental-contracts-form-setup.component";
 import {pairwise, Subscription} from "rxjs";
-import {RentalContractFeesService} from "../../../shared/services/rental-contract-fees.service";
-import {StepPaymentService} from "../../../shared/services/step-payment.service";
+import {RentalContractFeesService} from "../../../shared/services/rental-contract/rental-contract-fees.service";
+import {RentalContractStepPaymentService} from "../../../shared/services/rental-contract/rental-contract-step-payment.service";
+import {
+  RentalContractAdditionalAgreementService
+} from "../../../shared/services/rental-contract/rental-contract-additional-agreement.service";
 
 @Component({
   selector: 'app-rental-contracts-form',
@@ -30,15 +33,17 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   selectable = true;
   removable = true;
   separatorKeysCodes: number[] = [ENTER];
+  public closeSubscription$: Subscription = new Subscription();
 
   constructor(
     public service: RentalContractsService,
-    public stepService: StepPaymentService,
+    public stepService: RentalContractStepPaymentService,
     public feeService: RentalContractFeesService,
     public enumService: EnumService,
     public globalService: GlobalAppService,
     public apiService: ApiService,
     public setupService: RentalContractSetupService,
+    public additionalAgreementService: RentalContractAdditionalAgreementService,
     private datepipe: DatePipe,
     public dialogRef: MatDialogRef<RentalContractsFormComponent>,
     private dialog: MatDialog,
@@ -46,7 +51,15 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
   )
   {}
   ngOnInit(): void {
+
+    // this.closeSubscription$ = this.dialogRef.afterClosed().pipe(
+    //   tap(
+    //     () => {
+    //     }
+    //   )
+    // ).subscribe()
   }
+
 
   //Contract fees submitting
   submitFees(
@@ -104,7 +117,9 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
 
   submitStepPayments(
     rentalContractData: RentalContractModel,
-    fixedRentStepData: FixedRentStepModel[]) {
+    fixedRentStepData: FixedRentStepModel[],
+  ) {
+
     fixedRentStepData.forEach((step, index) => {
       step.rent_contract_id = rentalContractData.id
       step.last_updated = new Date()
@@ -129,6 +144,7 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
       this.stepService.fixedRentStepDeletedArray.next([])
     }
     )
+
   }
 
   //Contract card submitting
@@ -181,7 +197,7 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
               utilityFeeData)
             this.submitStepPayments(
               rentalContractData,
-              fixedRentStepData
+              fixedRentStepData,
             )
           }
         )
@@ -205,6 +221,10 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
           periodicalFeeData,
           oneTimeFeeData,
           utilityFeeData)
+        this.submitStepPayments(
+          rentalContractData,
+          fixedRentStepData,
+        )
         // @ts-ignore
         const contract: RentalContractModel = data
         this.service.changeDateFormatFromApi(contract)

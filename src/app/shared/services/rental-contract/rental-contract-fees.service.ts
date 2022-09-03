@@ -5,10 +5,10 @@ import {
   RentalContractOneTimeFeeSetupModel,
   RentalContractPeriodicalFeeModel,
   RentalContractPeriodicalFeeSetupModel, RentalContractUtilityFeeModel, RentalContractUtilityFeeSetupModel
-} from "../../models/models";
-import {ApiService} from "./api.service";
-import {GlobalAppService} from "./global-app.service";
-import {EnumService} from "./enum.service";
+} from "../../../models/models";
+import {ApiService} from "../api.service";
+import {GlobalAppService} from "../global-app.service";
+import {EnumService} from "../enum.service";
 import {FormArray, FormBuilder, FormControl, Validators} from "@angular/forms";
 import {MatChipInputEvent} from "@angular/material/chips";
 
@@ -129,7 +129,6 @@ export class RentalContractFeesService {
       rent_contract_additional_agreement_id: '',
       utility_name: fee.utility_name,
       compensation_type: fee.compensation_type,
-      // counter_id: [],
       compensation_calculation_period: fee.compensation_calculation_period,
       compensation_payment_period: fee.compensation_payment_period,
       compensation_fixed_fee: fee.compensation_fixed_fee,
@@ -666,7 +665,7 @@ export class RentalContractFeesService {
         if(data){
             this.periodicalFeeTabs.enable({emitEvent: false})
             this.oneTimeFeeTabs.enable({emitEvent: false})
-            this.utilityFeeTabs.disable({emitEvent: false})
+            this.utilityFeeTabs.enable({emitEvent: false})
           }
         }
     )

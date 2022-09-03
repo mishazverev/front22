@@ -28,10 +28,9 @@ import {MAT_DATE_LOCALE} from "@angular/material/core";
 import { DateTransformCorrectHoursPipe } from './shared/pipes/date-transform-correct-hours.pipe';
 import { ArraySortPipe } from './shared/pipes/array-sort.pipe';
 import { FixedRentStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/fixed-rent-step/fixed-rent-step.component';
-import { FixedRentIndexationStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/fixed-rent-indexation-step/fixed-rent-indexation-step.component';
-import { PeriodicalFeeIndexationStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/periodical-fee-indexation-step/periodical-fee-indexation-step.component';
 import { PeriodicalFeeStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/periodical-fee-step/periodical-fee-step.component';
-import { TurnoverFeeStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/turnover-fee-step/turnover-fee-step.component';
+import { RentalContractFrameComponent } from './contracts/rental-contracts/rental-contract-frame/rental-contract-frame.component';
+import {MatDialogRef} from "@angular/material/dialog";
 
 @NgModule({
   declarations: [
@@ -50,10 +49,8 @@ import { TurnoverFeeStepComponent } from './contracts/rental-contracts/rental-co
     DateTransformCorrectHoursPipe,
     ArraySortPipe,
     FixedRentStepComponent,
-    FixedRentIndexationStepComponent,
-    PeriodicalFeeIndexationStepComponent,
     PeriodicalFeeStepComponent,
-    TurnoverFeeStepComponent,
+    RentalContractFrameComponent,
   ],
     imports: [
         BrowserModule,
@@ -72,7 +69,10 @@ import { TurnoverFeeStepComponent } from './contracts/rental-contracts/rental-co
   ],
   providers: [ DateTransformCorrectHoursPipe, ArraySortPipe,
   DatePipe, NotificationService, MatSnackBar,
-
+    {
+      provide: MatDialogRef,
+      useValue: {}
+    },
     {provide: MAT_DATE_LOCALE, useValue: 'ru-RU'},
 
 ],

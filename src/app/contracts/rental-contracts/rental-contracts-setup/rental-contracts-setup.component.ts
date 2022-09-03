@@ -4,7 +4,7 @@ import {ApiService} from "../../../shared/services/api.service";
 import {DatePipe} from "@angular/common";
 import {MatDialogRef} from "@angular/material/dialog";
 import {NotificationService} from "../../../shared/notification.service";
-import {RentalContractSetupService} from "../../../shared/services/rental-contract-setup.service";
+import {RentalContractSetupService} from "../../../shared/services/rental-contract/rental-contract-setup.service";
 import {Subscription, tap} from "rxjs";
 import {EnumService} from "../../../shared/services/enum.service";
 import {map} from "rxjs/operators";
