@@ -11,7 +11,7 @@ import {
   RentalContractModelExpanded,
   TenantModel,
   RentalContractSetupModel,
-  DatesInterval,
+  DatesInterval, Select, RentalContractPeriodicalFeeModel, AdditionalAgreementModel,
 } from "../../../models/models";
 import {AbstractControl, FormBuilder, ValidatorFn, Validators} from "@angular/forms";
 import {ApiService} from "../api.service";
@@ -25,6 +25,7 @@ import {RentalContractFeesService} from "./rental-contract-fees.service";
 import {DateTransformCorrectHoursPipe} from "../../pipes/date-transform-correct-hours.pipe";
 import {RentalContractStepPaymentService} from "./rental-contract-step-payment.service";
 import {RentalContractAdditionalAgreementService} from "./rental-contract-additional-agreement.service";
+import {MatSelectChange} from "@angular/material/select";
 
 @Injectable({
   providedIn: 'root'
@@ -187,8 +188,8 @@ export class RentalContractsService {
   public selectedTenant = ''
   public selectedBrand = ''
 
-  public enumContractOrAA = new BehaviorSubject<string[]>([])
-  public selectedContractOrAA = new BehaviorSubject<string>('')
+  public enumContractOrAA = new BehaviorSubject<Select[]>([])
+  public selectedContractOrAA = new BehaviorSubject<Select>({value: 'Main contract', viewValue: 'Основной договор'})
 
   constructor(
     public fb: FormBuilder,
@@ -362,6 +363,10 @@ export class RentalContractsService {
 
     this.stepService.fixedRentStepArray.next([])
     console.log(this.stepService.fixedRentStepArray.value)
+
+    this.selectedContractOrAA.next({value: 'Main contract', viewValue: 'Основной договор'})
+    this.enumContractOrAA.value.push(this.selectedContractOrAA.value)
+
     this.rentContractIsLoaded$.next(true)
     console.log('New rental contract card is initialized')
   }
@@ -537,11 +542,15 @@ export class RentalContractsService {
     this.feeService.feeFormsEnablingSubscription()
     this.rentContractIsLoaded$.next(true)
 
-    this.enumContractOrAA.value.push('Основной договор')
-    for (let aa of this.additionalAgreementService.additionalAgreementsArray.value){
-      this.enumContractOrAA.value.push('Д/С №' +aa.additional_agreement_number)
+    this.selectedContractOrAA.next({value: 'Main contract', viewValue: 'Основной договор'})
+    this.enumContractOrAA.value.push(this.selectedContractOrAA.value)
+
+    for (let agreement of this.additionalAgreementService.additionalAgreementsArray.value){
+      this.enumContractOrAA.value.push
+      ({value:'Д/С №' +agreement.additional_agreement_number, viewValue: agreement.additional_agreement_number })
+      this.additionalAgreementService.additionalAgreementsNumbersArray.value.push(agreement.additional_agreement_number)
     }
-    this.selectedContractOrAA.next(this.enumContractOrAA.value[0])
+
     console.log('Rent contract is loaded')
   }
 
@@ -898,9 +907,6 @@ export class RentalContractsService {
     this.feeService.oneTimeFeeContractArray.next([])
     this.feeService.utilityFeeContractArray.next([])
     this.stepService.fixedRentStepArray.next([])
-
-    this.enumContractOrAA.next([])
-    this.selectedContractOrAA.next('')
 
     this.feeService.periodicalFeeTabs.clear()
     this.feeService.oneTimeFeeTabs.clear()
@@ -1422,6 +1428,22 @@ export class RentalContractsService {
     };
   }
 
+  //Additional agreements
+  addAdditionalAgreement() {
+    const additionalAgreementObject = {} as AdditionalAgreementModel
+    this.additionalAgreementService.additionalAgreementsArray.value.push(additionalAgreementObject)
+    this.additionalAgreementService.setNewAdditionalAgreementCard(this.rentContract.value)
+    this.selectedContractOrAA.next({value: 'Additional agreement', viewValue:'Дополнительное соглашение'})
+    this.enumContractOrAA.value.push(this.selectedContractOrAA.value)
+  }
 
+  chooseContractOrAdditionalAgreement(event: MatSelectChange){
+    if (event.value == 'Основной договор'){
+      this.selectedContractOrAA.next({value: 'Main contract', viewValue: 'Основной договор'})
+    }
+    if (event.value == 'Дополнительное соглашение'){
+      this.selectedContractOrAA.next({value: 'Additional agreement', viewValue:'Дополнительное соглашение'})
+    }
+    }
 
 }

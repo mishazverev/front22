@@ -20,17 +20,17 @@ import { TenantslistComponent } from './tenants/tenantslist/tenantslist.componen
 import { TenantformComponent } from './tenants/tenantform/tenantform.component';
 import { ModalContactDeleteComponent } from './modal-windows/modal-contact-delete/modal-contact-delete.component';
 import { RentalContractsListComponent } from './contracts/rental-contracts/rental-contracts-list/rental-contracts-list.component';
-import { RentalContractsFormComponent } from './contracts/rental-contracts/rental-contracts-form/rental-contracts-form.component';
+import { RentalContractFormComponent } from './contracts/rental-contracts/rental-contract-form/rental-contract-form.component';
 import { RentalContractsSetupComponent } from './contracts/rental-contracts/rental-contracts-setup/rental-contracts-setup.component';
 import {MatProgressBarModule} from "@angular/material/progress-bar";
-import { RentalContractsFormSetupComponent } from './contracts/rental-contracts/rental-contracts-form/rental-contracts-form-setup/rental-contracts-form-setup.component';
+import { RentalContractsFormSetupComponent } from './contracts/rental-contracts/rental-contract-form/rental-contracts-form-setup/rental-contracts-form-setup.component';
 import {MAT_DATE_LOCALE} from "@angular/material/core";
 import { DateTransformCorrectHoursPipe } from './shared/pipes/date-transform-correct-hours.pipe';
 import { ArraySortPipe } from './shared/pipes/array-sort.pipe';
-import { FixedRentStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/fixed-rent-step/fixed-rent-step.component';
-import { PeriodicalFeeStepComponent } from './contracts/rental-contracts/rental-contracts-form/step-payments/periodical-fee-step/periodical-fee-step.component';
-import { RentalContractFrameComponent } from './contracts/rental-contracts/rental-contract-frame/rental-contract-frame.component';
+import { FixedRentStepComponent } from './contracts/rental-contracts/rental-contract-form/step-payments/fixed-rent-step/fixed-rent-step.component';
+import { PeriodicalFeeStepComponent } from './contracts/rental-contracts/rental-contract-form/step-payments/periodical-fee-step/periodical-fee-step.component';
 import {MatDialogRef} from "@angular/material/dialog";
+import { RentalContractAdditionalAgreementComponent } from './contracts/rental-contracts/rental-contract-additional-agreement/rental-contract-additional-agreement.component';
 
 @NgModule({
   declarations: [
@@ -43,14 +43,14 @@ import {MatDialogRef} from "@angular/material/dialog";
     RentalContractsListComponent,
     PremiseListComponent,
     PremiseFormComponent,
-    RentalContractsFormComponent,
+    RentalContractFormComponent,
     RentalContractsSetupComponent,
     RentalContractsFormSetupComponent,
     DateTransformCorrectHoursPipe,
     ArraySortPipe,
     FixedRentStepComponent,
     PeriodicalFeeStepComponent,
-    RentalContractFrameComponent,
+    RentalContractAdditionalAgreementComponent,
   ],
     imports: [
         BrowserModule,

@@ -102,6 +102,32 @@ export class RentalContractFeesService {
     return this.periodicalFeeContractArray.value
   }
 
+  setNewPeriodicalFeeTab(fee_name:string) {
+    this.periodicalFeeTabs.push(
+      this.fb.group({
+        id: new FormControl(''),
+        rent_contract_id: new FormControl(''),
+        rent_contract_additional_agreement_id: new FormControl(''),
+        periodical_fee_name: new FormControl(fee_name),
+        periodical_fee_calculation_period: new FormControl('Month'),
+        periodical_fee_payment_period: new FormControl(''),
+        periodical_fee_calculation_method: new FormControl('Per_sqm'),
+        periodical_fee_per_sqm: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
+        periodical_fee_total_payment: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
+        periodical_fee_prepayment_or_postpayment: new FormControl('Prepayment'),
+        periodical_fee_advance_payment_day: new FormControl(''),
+        periodical_fee_post_payment_day: new FormControl(''),
+        periodical_fee_indexation_type: new FormControl('Fixed'),
+        periodical_payment_indexation_fixed: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
+        last_updated: new FormControl(''),
+        user_updated: new FormControl(''),
+      })
+
+    )
+    console.log('New PeriodicalFee Tab is added')
+    return this.periodicalFeeTabs
+  }
+
   newOneTimeFeeContractArray(fee: RentalContractOneTimeFeeSetupModel){
     this.oneTimeFeeContractArray.value.push({
       id: Number(''),
@@ -120,6 +146,30 @@ export class RentalContractFeesService {
     })
     this.setFeeNames()
     return this.oneTimeFeeContractArray.value
+  }
+
+  setNewOneTimeFeeTab(fee_name:string) {
+    this.oneTimeFeeTabs.push(
+      this.fb.group({
+        id: new FormControl(''),
+        rent_contract_id: new FormControl(''),
+        rent_contract_additional_agreement_id: new FormControl(''),
+        one_time_fee_name: new FormControl(fee_name),
+        one_time_fee_calculation_method: new FormControl('Per_sqm'),
+        one_time_fee_payment_term: new FormControl('Fixed_date'),
+        one_time_fee_payment_triggering_event: new FormControl(''),
+        one_time_fee_per_sqm: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
+        one_time_fee_total_payment: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
+        one_time_fee_contract_payment_date: new FormControl(''),
+        one_time_fee_contract_triggering_event_related_payment_day:
+          new FormControl('', Validators.pattern("^[0-9]{1,3}")),
+        last_updated: new FormControl(''),
+        user_updated: new FormControl(''),
+      })
+    )
+    // @ts-ignore
+    console.log('New OneTime Tab is added')
+    return this.oneTimeFeeTabs
   }
 
   newUtilityFeeContractArray(fee: RentalContractUtilityFeeSetupModel){
@@ -142,6 +192,31 @@ export class RentalContractFeesService {
       user_updated: ''
     })
     return this.utilityFeeContractArray.value
+  }
+
+  setNewUtilityFeeTab(fee_name:string) {
+    this.utilityFeeTabs.push(
+      this.fb.group({
+        id: new FormControl(''),
+        rent_contract_id: new FormControl(''),
+        utility_name: new FormControl(fee_name),
+        compensation_type: new FormControl('Using_counter'),
+        compensation_calculation_period: new FormControl('Month'),
+        compensation_payment_period: new FormControl('Month'),
+        compensation_fixed_fee: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
+        compensation_fixed_fee_indexation_type: new FormControl(''),
+        compensation_fixed_fee_indexation_fixed: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
+        compensation_fixed_fee_prepayment_or_postpayment: new FormControl(''),
+        compensation_advance_payment_day: new FormControl(''),
+        compensation_counter_data_providing_day: new FormControl(''),
+        compensation_post_payment_day: new FormControl(''),
+        last_updated: new FormControl(''),
+        user_updated: new FormControl(''),
+      })
+    )
+    // @ts-ignore
+    console.log('New Utility Tab is added')
+    return this.utilityFeeTabs
   }
 
   // Populate Fee Tabs
@@ -221,7 +296,6 @@ export class RentalContractFeesService {
     console.log('Utility Tab is populated')
     return this.utilityFeeTabs
   }
-
 
   periodicalFeeAddSubscription(fee: RentalContractPeriodicalFeeModel){
     const i = this.periodicalFeeContractArray.value.indexOf(fee);
@@ -418,7 +492,6 @@ export class RentalContractFeesService {
 
   }
 
-
   //Chips add
 
   addPeriodicalFeeChip(event: MatChipInputEvent) {
@@ -557,83 +630,6 @@ export class RentalContractFeesService {
         )
       }
     }
-  }
-
-  //Tabs
-
-  setNewPeriodicalFeeTab(fee_name:string) {
-    this.periodicalFeeTabs.push(
-      this.fb.group({
-        id: new FormControl(''),
-        rent_contract_id: new FormControl(''),
-        rent_contract_additional_agreement_id: new FormControl(''),
-        periodical_fee_name: new FormControl(fee_name),
-        periodical_fee_calculation_period: new FormControl('Month'),
-        periodical_fee_payment_period: new FormControl(''),
-        periodical_fee_calculation_method: new FormControl('Per_sqm'),
-        periodical_fee_per_sqm: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
-        periodical_fee_total_payment: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
-        periodical_fee_prepayment_or_postpayment: new FormControl('Prepayment'),
-        periodical_fee_advance_payment_day: new FormControl(''),
-        periodical_fee_post_payment_day: new FormControl(''),
-        periodical_fee_indexation_type: new FormControl('Fixed'),
-        periodical_payment_indexation_fixed: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
-        last_updated: new FormControl(''),
-        user_updated: new FormControl(''),
-      })
-
-    )
-    console.log('New PeriodicalFee Tab is added')
-    return this.periodicalFeeTabs
-  }
-
-  setNewOneTimeFeeTab(fee_name:string) {
-    this.oneTimeFeeTabs.push(
-      this.fb.group({
-        id: new FormControl(''),
-        rent_contract_id: new FormControl(''),
-        rent_contract_additional_agreement_id: new FormControl(''),
-        one_time_fee_name: new FormControl(fee_name),
-        one_time_fee_calculation_method: new FormControl('Per_sqm'),
-        one_time_fee_payment_term: new FormControl('Fixed_date'),
-        one_time_fee_payment_triggering_event: new FormControl(''),
-        one_time_fee_per_sqm: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
-        one_time_fee_total_payment: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
-        one_time_fee_contract_payment_date: new FormControl(''),
-        one_time_fee_contract_triggering_event_related_payment_day:
-          new FormControl('', Validators.pattern("^[0-9]{1,3}")),
-        last_updated: new FormControl(''),
-        user_updated: new FormControl(''),
-      })
-    )
-    // @ts-ignore
-    console.log('New OneTime Tab is added')
-    return this.oneTimeFeeTabs
-  }
-
-  setNewUtilityFeeTab(fee_name:string) {
-    this.utilityFeeTabs.push(
-      this.fb.group({
-        id: new FormControl(''),
-        rent_contract_id: new FormControl(''),
-        utility_name: new FormControl(fee_name),
-        compensation_type: new FormControl('Using_counter'),
-        compensation_calculation_period: new FormControl('Month'),
-        compensation_payment_period: new FormControl('Month'),
-        compensation_fixed_fee: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
-        compensation_fixed_fee_indexation_type: new FormControl(''),
-        compensation_fixed_fee_indexation_fixed: new FormControl('', Validators.pattern("^[0-9]{1,6}(\.[0-9]{1,2})?$")),
-        compensation_fixed_fee_prepayment_or_postpayment: new FormControl(''),
-        compensation_advance_payment_day: new FormControl(''),
-        compensation_counter_data_providing_day: new FormControl(''),
-        compensation_post_payment_day: new FormControl(''),
-        last_updated: new FormControl(''),
-        user_updated: new FormControl(''),
-      })
-    )
-    // @ts-ignore
-    console.log('New Utility Tab is added')
-    return this.utilityFeeTabs
   }
 
   setFeeNames(){

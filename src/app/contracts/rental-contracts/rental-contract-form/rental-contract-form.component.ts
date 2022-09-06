@@ -25,11 +25,11 @@ import {
 } from "../../../shared/services/rental-contract/rental-contract-additional-agreement.service";
 
 @Component({
-  selector: 'app-rental-contracts-form',
-  templateUrl: './rental-contracts-form.component.html',
-  styleUrls: ['./rental-contracts-form.component.sass']
+  selector: 'app-rental-contract-form',
+  templateUrl: './rental-contract-form.component.html',
+  styleUrls: ['./rental-contract-form.component.sass']
 })
-export class RentalContractsFormComponent implements OnInit, OnDestroy {
+export class RentalContractFormComponent implements OnInit, OnDestroy {
   selectable = true;
   removable = true;
   separatorKeysCodes: number[] = [ENTER];
@@ -45,7 +45,7 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     public setupService: RentalContractSetupService,
     public additionalAgreementService: RentalContractAdditionalAgreementService,
     private datepipe: DatePipe,
-    public dialogRef: MatDialogRef<RentalContractsFormComponent>,
+    public dialogRef: MatDialogRef<RentalContractFormComponent>,
     private dialog: MatDialog,
     private notificationService: NotificationService,
   )
@@ -245,6 +245,9 @@ export class RentalContractsFormComponent implements OnInit, OnDestroy {
     dialogConfig.maxHeight = '90%'
     this.dialog.open(RentalContractsFormSetupComponent, dialogConfig)
   }
+
+  //Additional agreements
+
 
   //Contract card closing
   onClose() {

@@ -1,3 +1,4 @@
+
 <div>
 <mat-grid-list cols="3" rowHeight="75px">
   <mat-grid-tile [colspan]="1">
@@ -10,10 +11,12 @@
   <mat-grid-tile [colspan]="1">
     <mat-form-field appearance="fill">
       <mat-label></mat-label>
-      <mat-select [value]="service.selectedContractOrAA.value">
+      <mat-select [value]="service.selectedContractOrAA.value.viewValue"
+      (selectionChange)="service.chooseContractOrAdditionalAgreement($event)"
+      >
         <mat-option *ngFor="let item of service.enumContractOrAA.value"
-                    [value]="service.enumContractOrAA.value[0]">
-                    {{item}}
+                    [value]="item.viewValue">
+                    {{item.viewValue}}
         </mat-option>
       </mat-select>
     </mat-form-field>
@@ -23,7 +26,7 @@
   <div class="toggle_tile">
     <button mat-raised-button
             [disabled] = '!globalService.editCardTrigger$.value || !service.rentContractIsLoaded$.value'
-
+            (click)="service.addAdditionalAgreement()"
     >Добавить д/с
       <mat-icon>settings</mat-icon>
     </button>
@@ -48,6 +51,7 @@
 
   <mat-progress-bar mode="query" *ngIf="service.rentContractIsLoaded$.value == false"></mat-progress-bar>
 
+<ng-container *ngIf="service.selectedContractOrAA.value.value == 'Main contract'">
   <div *ngIf="service.rentContractIsLoaded$.value == true" [formGroup]="service.form_contract">
   <mat-grid-list cols="3" rowHeight="75px">
     <input type="hidden" formControlName="id">
@@ -122,7 +126,7 @@
       <mat-datepicker #picker2></mat-datepicker>
       <mat-hint align="start">Обязательное поле</mat-hint>
       <mat-error *ngIf="service.form_contract.controls['rent_contract_expiration_date'].hasError('required') ">
-        Дата начала договора обязательна
+        Дата окончания договора обязательна
       </mat-error>
     </mat-form-field>
   </mat-grid-tile>
@@ -615,7 +619,8 @@
   </mat-step>
 
   <mat-step *ngIf="feeService.periodicalFeeContractArray.value.length > 0 || feeService.oneTimeFeeContractArray.value.length > 0">
-      <ng-template matStepLabel>{{this.feeService.periodicalFeeNameSubject.value}}{{this.feeService.oneTimeFeeNameSubject.value}}сборы</ng-template>
+      <ng-template matStepLabel>
+        {{this.feeService.periodicalFeeNameSubject.value}}{{this.feeService.oneTimeFeeNameSubject.value}}сборы</ng-template>
       <p></p>
     <div [formGroup]="feeService.periodicalFeeTabsForm">
       <ng-container formArrayName="periodicalFeeArray">
@@ -780,7 +785,10 @@
       </mat-grid-tile>
     </mat-grid-list>
   </mat-step>
-
-
 </mat-stepper>
   </div>
+</ng-container>
+
+<ng-container *ngIf="service.selectedContractOrAA.value.value == 'Additional agreement'">
+  <app-rental-contract-additional-agreement></app-rental-contract-additional-agreement>
+</ng-container>

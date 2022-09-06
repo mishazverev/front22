@@ -3,7 +3,7 @@ import {RentalContractsService} from "../../../../shared/services/rental-contrac
 import {ENTER} from "@angular/cdk/keycodes";
 import {GlobalAppService} from "../../../../shared/services/global-app.service";
 import {MatDialogRef} from "@angular/material/dialog";
-import {RentalContractsFormComponent} from "../rental-contracts-form.component";
+import {RentalContractFormComponent} from "../rental-contract-form.component";
 import {
   RentalContractModel,
   RentalContractOneTimeFeeModel, RentalContractOneTimeFeeSetupModel,
@@ -23,7 +23,7 @@ import {RentalContractFeesService} from "../../../../shared/services/rental-cont
 
 
 @Component({
-  selector: 'app-rental-contracts-form-setup',
+  selector: 'app-rental-contract-form-setup',
   templateUrl: './rental-contracts-form-setup.component.html',
   styleUrls: ['./rental-contracts-form-setup.component.sass']
 })
@@ -39,7 +39,7 @@ export class RentalContractsFormSetupComponent implements OnInit {
     private notificationService: NotificationService,
     public enumService: EnumService,
     private datepipe: DatePipe,
-    public dialogRef: MatDialogRef<RentalContractsFormComponent>,
+    public dialogRef: MatDialogRef<RentalContractFormComponent>,
 
   ) { }
   public fixedRentName$: Subscription = new Subscription;

@@ -16,7 +16,7 @@ import {DatePipe} from "@angular/common";
 import {ArraySortPipe} from "../../pipes/array-sort.pipe";
 import {
   FixedRentStepComponent
-} from "../../../contracts/rental-contracts/rental-contracts-form/step-payments/fixed-rent-step/fixed-rent-step.component";
+} from "../../../contracts/rental-contracts/rental-contract-form/step-payments/fixed-rent-step/fixed-rent-step.component";
 
 
 @Injectable({

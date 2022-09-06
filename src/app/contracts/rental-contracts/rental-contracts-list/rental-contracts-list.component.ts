@@ -23,7 +23,7 @@ import {RentalContractStepPaymentService} from "../../../shared/services/rental-
 import {
   RentalContractAdditionalAgreementService
 } from "../../../shared/services/rental-contract/rental-contract-additional-agreement.service";
-import {RentalContractsFormComponent} from "../rental-contracts-form/rental-contracts-form.component";
+import {RentalContractFormComponent} from "../rental-contract-form/rental-contract-form.component";
 
 
 @Component({
@@ -191,7 +191,7 @@ export class RentalContractsListComponent implements OnInit {
       dialogConfig.autoFocus = true
       dialogConfig.width = '1400px'
       dialogConfig.maxHeight = '90%'
-      this.dialog.open(RentalContractsFormComponent, dialogConfig)
+      this.dialog.open(RentalContractFormComponent, dialogConfig)
   })}
 
   onEdit(contract: RentalContractModelExpanded) {
@@ -234,7 +234,7 @@ export class RentalContractsListComponent implements OnInit {
     dialogConfig.autoFocus = true
     dialogConfig.width = '1400px'
     dialogConfig.maxHeight = '90%'
-    this.dialog.open(RentalContractsFormComponent, dialogConfig)
+    this.dialog.open(RentalContractFormComponent, dialogConfig)
   }
 
   onDelete(data: RentalContractModelExpanded) {
